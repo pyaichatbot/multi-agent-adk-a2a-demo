@@ -9,6 +9,7 @@ from typing import Dict, Any, List
 from adk import Agent, FunctionTool
 from adk_shared.agent_registration import SelfRegisteringAgent, AgentCapability
 from adk_shared.observability import setup_observability
+from adk_shared.litellm_integration import create_agent_llm_config, get_litellm_wrapper
 
 
 class CustomAnalyticsTool(FunctionTool):
@@ -90,13 +91,16 @@ class MyCustomAgent(SelfRegisteringAgent, Agent):
             )
         ]
         
+        # Create LiteLLM-compatible configuration
+        llm_config = create_agent_llm_config('example_agent')
+        
         # Initialize Agent
         Agent.__init__(
             self,
             name="CustomAnalyticsAgent",
             description="Advanced analytics agent with trend forecasting capabilities",
             tools=custom_tools,
-            llm_config=config['llm']
+            llm_config=llm_config
         )
         
         # Initialize SelfRegisteringAgent with configuration
@@ -113,6 +117,9 @@ class MyCustomAgent(SelfRegisteringAgent, Agent):
         self.max_concurrent_requests = config.get('max_concurrent_requests', 8)
         self.tags = set(config.get('tags', ['analytics', 'forecasting', 'business']))
         self.priority = config.get('priority', 3)  # High priority
+        
+        # Initialize LiteLLM wrapper for enhanced functionality
+        self.litellm_wrapper = get_litellm_wrapper('example_agent')
         
     async def process_request(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Process analytics requests with enhanced capabilities"""
@@ -137,13 +144,21 @@ class MyCustomAgent(SelfRegisteringAgent, Agent):
                 Use the appropriate tools and provide detailed insights.
                 """
                 
-                response = await self.chat(analytics_prompt)
+                # Use LiteLLM wrapper for enhanced functionality
+                messages = [
+                    {"role": "user", "content": analytics_prompt}
+                ]
+                
+                response = await self.litellm_wrapper.chat_completion(messages)
+                response_content = response.get('content', '')
                 
                 return {
                     "agent": "CustomAnalyticsAgent",
                     "capability_used": "custom_analytics",
                     "query": query,
-                    "response": response,
+                    "response": response_content,
+                    "model": response.get('model', 'unknown'),
+                    "usage": response.get('usage', {}),
                     "metadata": {
                         "analysis_depth": "comprehensive",
                         "confidence_level": 0.92,

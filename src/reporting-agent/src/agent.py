@@ -11,6 +11,7 @@ import logging
 from adk import Agent, MCPToolset
 from adk_shared.observability import get_tracer
 from adk_shared.security import get_auth_token
+from adk_shared.litellm_integration import create_agent_llm_config, get_litellm_wrapper
 import yaml
 
 
@@ -29,13 +30,18 @@ class ReportingAgent(Agent):
             tools=['run_analytics', 'query_database', 'search_documents']
         )
         
+        # Create LiteLLM-compatible configuration
+        llm_config = create_agent_llm_config('reporting')
+        
         super().__init__(
             name="ReportingAgent",
             description="Specialized agent for business reporting and analytics",
             tools=[mcp_toolset],
-            llm_config=config['llm']
+            llm_config=llm_config
         )
         
+        # Initialize LiteLLM wrapper for enhanced functionality
+        self.litellm_wrapper = get_litellm_wrapper('reporting')
         self.tracer = get_tracer("reporting-agent")
     
     async def process_request(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -47,18 +53,20 @@ class ReportingAgent(Agent):
             span.set_attribute("query", query)
             
             try:
-                # Use LLM to generate comprehensive reports
-                response = await self.chat(
-                    f"Generate a comprehensive report based on: {query}. "
-                    f"Use analytics tools and data sources as needed. "
-                    f"Context: {context or {}}"
-                )
+                # Use LiteLLM wrapper for enhanced functionality
+                messages = [
+                    {"role": "user", "content": f"Generate a comprehensive report based on: {query}. Use analytics tools and data sources as needed. Context: {context or {}}"}
+                ]
+                
+                response = await self.litellm_wrapper.chat_completion(messages)
                 
                 return {
                     "transaction_id": transaction_id,
                     "agent": "ReportingAgent",
                     "query": query,
-                    "response": response,
+                    "response": response.get('content', ''),
+                    "model": response.get('model', 'unknown'),
+                    "usage": response.get('usage', {}),
                     "timestamp": datetime.now().isoformat()
                 }
                 

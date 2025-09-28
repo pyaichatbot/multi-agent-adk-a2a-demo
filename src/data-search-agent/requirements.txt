@@ -10,3 +10,5 @@ opentelemetry-instrumentation-fastapi>=0.42b0
 aiohttp>=3.9.1
 httpx>=0.25.2
 pyjwt>=2.8.0
+litellm>=1.0.0
+python-dotenv>=1.0.0

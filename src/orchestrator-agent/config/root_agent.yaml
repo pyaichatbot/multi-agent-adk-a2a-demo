@@ -2,10 +2,13 @@ name: "EnterpriseOrchestrator"
 description: "Central orchestrator for enterprise multi-agent system"
 
 llm:
-  provider: "openai"
-  model: "gpt-4"
+  provider: "litellm"
+  model: "azure/gpt-4o"
   temperature: 0.1
   max_tokens: 2000
+  api_key: "${AZURE_API_KEY}"
+  api_base: "${AZURE_API_BASE}"
+  api_version: "${AZURE_API_VERSION}"
 
 agents:
   - name: "DataSearchAgent"

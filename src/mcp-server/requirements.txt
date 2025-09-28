@@ -15,3 +15,5 @@ pytest>=7.4.3
 pytest-asyncio>=0.21.1
 pyjwt>=2.8.0
 cryptography>=41.0.7
+litellm>=1.0.0
+python-dotenv>=1.0.0

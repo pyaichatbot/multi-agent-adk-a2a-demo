@@ -11,6 +11,7 @@ import logging
 from adk import Agent, MCPToolset
 from adk_shared.observability import get_tracer
 from adk_shared.security import get_auth_token
+from adk_shared.litellm_integration import create_agent_llm_config, get_litellm_wrapper
 import yaml
 
 
@@ -29,13 +30,18 @@ class DataSearchAgent(Agent):
             tools=['query_database', 'search_documents']
         )
         
+        # Create LiteLLM-compatible configuration
+        llm_config = create_agent_llm_config('data_search')
+        
         super().__init__(
             name="DataSearchAgent",
             description="Specialized agent for enterprise data search and retrieval",
             tools=[mcp_toolset],
-            llm_config=config['llm']
+            llm_config=llm_config
         )
         
+        # Initialize LiteLLM wrapper for enhanced functionality
+        self.litellm_wrapper = get_litellm_wrapper('data_search')
         self.tracer = get_tracer("data-search-agent")
     
     async def process_request(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -47,17 +53,20 @@ class DataSearchAgent(Agent):
             span.set_attribute("query", query)
             
             try:
-                # Use LLM to determine best approach
-                response = await self.chat(
-                    f"Search for data based on this query: {query}. "
-                    f"Context: {context or {}}"
-                )
+                # Use LiteLLM wrapper for enhanced functionality
+                messages = [
+                    {"role": "user", "content": f"Search for data based on this query: {query}. Context: {context or {}}"}
+                ]
+                
+                response = await self.litellm_wrapper.chat_completion(messages)
                 
                 return {
                     "transaction_id": transaction_id,
                     "agent": "DataSearchAgent",
                     "query": query,
-                    "response": response,
+                    "response": response.get('content', ''),
+                    "model": response.get('model', 'unknown'),
+                    "usage": response.get('usage', {}),
                     "timestamp": datetime.now().isoformat()
                 }
                 

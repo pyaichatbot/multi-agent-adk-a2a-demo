@@ -12,6 +12,7 @@ import logging
 from adk import Agent, A2AClient, RouterAgent
 from adk_shared.observability import get_tracer, trace_agent_call
 from adk_shared.security import validate_policy
+from adk_shared.litellm_integration import create_agent_llm_config, get_litellm_wrapper
 import yaml
 
 
@@ -36,13 +37,18 @@ class EnterpriseOrchestrator(RouterAgent):
             )
             self.agents[agent_config['name']] = client
         
+        # Create LiteLLM-compatible configuration
+        llm_config = create_agent_llm_config('orchestrator')
+        
         super().__init__(
             name="EnterpriseOrchestrator",
             description="Central orchestrator for enterprise multi-agent system",
             agents=list(self.agents.values()),
-            llm_config=config['llm']
+            llm_config=llm_config
         )
         
+        # Initialize LiteLLM wrapper for enhanced functionality
+        self.litellm_wrapper = get_litellm_wrapper('orchestrator')
         self.tracer = get_tracer("orchestrator-agent")
     
     async def route_request(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -103,6 +109,29 @@ class EnterpriseOrchestrator(RouterAgent):
         - reasoning: why this agent was selected
         """
         
-        response = await self.chat(selection_prompt)
-        # Parse LLM response (implementation depends on LLM output format)
-        return json.loads(response)
+        # Use LiteLLM wrapper for enhanced functionality
+        messages = [
+            {"role": "user", "content": selection_prompt}
+        ]
+        
+        try:
+            response = await self.litellm_wrapper.chat_completion(messages)
+            response_text = response.get('content', '')
+            
+            # Parse JSON response
+            return json.loads(response_text)
+            
+        except json.JSONDecodeError as e:
+            logging.error(f"Failed to parse agent selection response: {e}")
+            # Fallback to first available agent
+            return {
+                "agent": list(self.agents.keys())[0],
+                "reasoning": "Fallback selection due to parsing error"
+            }
+        except Exception as e:
+            logging.error(f"Agent selection failed: {e}")
+            # Fallback to first available agent
+            return {
+                "agent": list(self.agents.keys())[0],
+                "reasoning": f"Fallback selection due to error: {str(e)}"
+            }

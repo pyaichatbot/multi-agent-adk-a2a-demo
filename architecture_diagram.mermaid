@@ -1,0 +1,97 @@
+graph TB
+    %% External Systems
+    User[👤 User Request] --> Gateway[🌐 API Gateway]
+    AzureOpenAI[☁️ Azure OpenAI<br/>GPT-4o Models] --> LiteLLM[🔧 LiteLLM Integration]
+    
+    %% Core Orchestration Layer
+    Gateway --> Orchestrator[🎯 Orchestrator Agent<br/>Port 8001<br/>EnterpriseOrchestrator]
+    
+    %% LiteLLM Integration Layer
+    LiteLLM --> Orchestrator
+    LiteLLM --> DataAgent[🔍 Data Search Agent<br/>Port 8002<br/>DataSearchAgent]
+    LiteLLM --> ReportAgent[📊 Reporting Agent<br/>Port 8003<br/>ReportingAgent]
+    LiteLLM --> ExampleAgent[⚙️ Example Agent<br/>Port 8004<br/>CustomAnalyticsAgent]
+    
+    %% Agent Communication
+    Orchestrator -->|A2A Protocol| DataAgent
+    Orchestrator -->|A2A Protocol| ReportAgent
+    Orchestrator -->|A2A Protocol| ExampleAgent
+    
+    %% MCP Tool Server
+    DataAgent -->|MCP Tools| MCPServer[🛠️ MCP Tool Server<br/>Port 8000<br/>EnterpriseToolServer]
+    ReportAgent -->|MCP Tools| MCPServer
+    ExampleAgent -->|MCP Tools| MCPServer
+    
+    %% Data Layer
+    MCPServer --> Database[(🗄️ Enterprise Database<br/>SQL Queries)]
+    MCPServer --> Documents[(📄 Document Repository<br/>Search & Indexing)]
+    MCPServer --> Analytics[(📈 Analytics Engine<br/>Business Intelligence)]
+    
+    %% Shared Libraries
+    subgraph SharedLibraries[📚 ADK-Shared Libraries]
+        AgentRegistry[🏪 Agent Registry<br/>Dynamic Discovery]
+        Observability[📊 Observability<br/>OpenTelemetry Tracing]
+        Security[🔐 Security<br/>JWT Authentication]
+        LiteLLMIntegration[🤖 LiteLLM Integration<br/>Azure OpenAI Wrapper]
+    end
+    
+    %% Service Dependencies
+    Orchestrator -.->|Uses| AgentRegistry
+    Orchestrator -.->|Uses| Observability
+    Orchestrator -.->|Uses| Security
+    Orchestrator -.->|Uses| LiteLLMIntegration
+    
+    DataAgent -.->|Uses| Observability
+    DataAgent -.->|Uses| Security
+    DataAgent -.->|Uses| LiteLLMIntegration
+    
+    ReportAgent -.->|Uses| Observability
+    ReportAgent -.->|Uses| Security
+    ReportAgent -.->|Uses| LiteLLMIntegration
+    
+    ExampleAgent -.->|Uses| AgentRegistry
+    ExampleAgent -.->|Uses| Observability
+    ExampleAgent -.->|Uses| Security
+    ExampleAgent -.->|Uses| LiteLLMIntegration
+    
+    MCPServer -.->|Uses| Observability
+    MCPServer -.->|Uses| Security
+    
+    %% Monitoring & Observability
+    Orchestrator --> CloudTrace[☁️ Cloud Trace<br/>Distributed Tracing]
+    DataAgent --> CloudTrace
+    ReportAgent --> CloudTrace
+    ExampleAgent --> CloudTrace
+    MCPServer --> CloudTrace
+    
+    %% Policy & Governance
+    PolicyEngine[⚖️ Policy Engine<br/>Governance Rules] --> Orchestrator
+    
+    %% Configuration Management
+    subgraph ConfigLayer[⚙️ Configuration Layer]
+        EnvConfig[🔧 Environment Config<br/>Azure OpenAI Credentials]
+        AgentConfigs[📋 Agent Configurations<br/>YAML Files]
+        PolicyConfig[📜 Policy Configurations<br/>Governance Rules]
+    end
+    
+    EnvConfig --> LiteLLMIntegration
+    AgentConfigs --> Orchestrator
+    AgentConfigs --> DataAgent
+    AgentConfigs --> ReportAgent
+    AgentConfigs --> ExampleAgent
+    PolicyConfig --> Orchestrator
+    
+    %% Styling
+    classDef orchestrator fill:#e1f5fe,stroke:#01579b,stroke-width:3px
+    classDef agent fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef mcp fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef shared fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef external fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    classDef data fill:#f1f8e9,stroke:#33691e,stroke-width:2px
+    
+    class Orchestrator orchestrator
+    class DataAgent,ReportAgent,ExampleAgent agent
+    class MCPServer mcp
+    class SharedLibraries,AgentRegistry,Observability,Security,LiteLLMIntegration shared
+    class User,AzureOpenAI,Gateway external
+    class Database,Documents,Analytics data
