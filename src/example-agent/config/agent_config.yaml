@@ -1,0 +1,36 @@
+# Custom Agent Configuration
+agent_name: "CustomAnalyticsAgent"
+version: "1.0.0"
+
+# LLM Configuration
+llm:
+  provider: "openai"
+  model: "gpt-4"
+  temperature: 0.1
+  max_tokens: 2000
+
+# Registry Configuration
+registry_url: "redis://localhost:6379"
+auto_register: true
+heartbeat_interval: 30
+
+# Agent Settings
+max_concurrent_requests: 8
+priority: 3
+tags:
+  - "analytics"
+  - "forecasting" 
+  - "business"
+  - "custom"
+
+# Observability
+telemetry:
+  tracing: true
+  metrics: true
+  log_level: "INFO"
+
+# Service Configuration
+service:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 1

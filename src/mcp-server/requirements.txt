@@ -1,0 +1,17 @@
+adk>=1.0.0
+fastapi>=0.104.0
+uvicorn>=0.24.0
+pydantic>=2.5.0
+pyyaml>=6.0.1
+opentelemetry-api>=1.21.0
+opentelemetry-sdk>=1.21.0
+opentelemetry-exporter-gcp-trace>=1.6.0
+opentelemetry-instrumentation-fastapi>=0.42b0
+opentelemetry-instrumentation-logging>=0.42b0
+sqlalchemy>=2.0.23
+psycopg2-binary>=2.9.9
+redis>=5.0.1
+pytest>=7.4.3
+pytest-asyncio>=0.21.1
+pyjwt>=2.8.0
+cryptography>=41.0.7

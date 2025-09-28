@@ -1,0 +1,401 @@
+# Documentation specific gitignore
+
+# Documentation build files
+_build/
+build/
+dist/
+site/
+.sphinx/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+nosetests.xml
+
+# Logs
+logs/
+*.log
+**/logs/
+**/*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Development files
+.env
+.env.*
+*.env
+
+# Documentation specific
+# Generated documentation
+generated/
+auto-generated/
+docs-generated/
+documentation-generated/
+
+# Documentation cache
+docs-cache/
+documentation-cache/
+docs-temp/
+documentation-temp/
+
+# Documentation data
+docs-data/
+documentation-data/
+docs-temp/
+documentation-temp/
+
+# Documentation logs
+docs-logs/
+documentation-logs/
+docs-logs-temp/
+documentation-logs-temp/
+
+# Documentation metrics
+docs-metrics/
+documentation-metrics/
+docs-metrics-temp/
+documentation-metrics-temp/
+
+# Documentation traces
+docs-traces/
+documentation-traces/
+docs-traces-temp/
+documentation-traces-temp/
+
+# Documentation audit
+docs-audit/
+documentation-audit/
+docs-audit-temp/
+documentation-audit-temp/
+
+# Documentation compliance
+docs-compliance/
+documentation-compliance/
+docs-compliance-temp/
+documentation-compliance-temp/
+
+# Documentation governance
+docs-governance/
+documentation-governance/
+docs-governance-temp/
+documentation-governance-temp/
+
+# Documentation security
+docs-security/
+documentation-security/
+docs-security-temp/
+documentation-security-temp/
+
+# Documentation monitoring
+docs-monitoring/
+documentation-monitoring/
+docs-monitoring-temp/
+documentation-monitoring-temp/
+
+# Documentation observability
+docs-observability/
+documentation-observability/
+docs-observability-temp/
+documentation-observability-temp/
+
+# Documentation performance
+docs-performance/
+documentation-performance/
+docs-performance-temp/
+documentation-performance-temp/
+
+# Documentation load testing
+docs-load-testing/
+documentation-load-testing/
+docs-load-testing-temp/
+documentation-load-testing-temp/
+
+# Documentation stress testing
+docs-stress-testing/
+documentation-stress-testing/
+docs-stress-testing-temp/
+documentation-stress-testing-temp/
+
+# Documentation integration testing
+docs-integration-testing/
+documentation-integration-testing/
+docs-integration-testing-temp/
+documentation-integration-testing-temp/
+
+# Documentation unit testing
+docs-unit-testing/
+documentation-unit-testing/
+docs-unit-testing-temp/
+documentation-unit-testing-temp/
+
+# Documentation end-to-end testing
+docs-e2e-testing/
+documentation-e2e-testing/
+docs-e2e-testing-temp/
+documentation-e2e-testing-temp/
+
+# Documentation smoke testing
+docs-smoke-testing/
+documentation-smoke-testing/
+docs-smoke-testing-temp/
+documentation-smoke-testing-temp/
+
+# Documentation regression testing
+docs-regression-testing/
+documentation-regression-testing/
+docs-regression-testing-temp/
+documentation-regression-testing-temp/
+
+# Documentation acceptance testing
+docs-acceptance-testing/
+documentation-acceptance-testing/
+docs-acceptance-testing-temp/
+documentation-acceptance-testing-temp/
+
+# Documentation performance testing
+docs-performance-testing/
+documentation-performance-testing/
+docs-performance-testing-temp/
+documentation-performance-testing-temp/
+
+# Sphinx specific
+.sphinx/
+_build/
+build/
+dist/
+site/
+.sphinx/
+
+# MkDocs specific
+site/
+.mkdocs/
+
+# GitBook specific
+_book/
+.gitbook/
+
+# Docusaurus specific
+.docusaurus/
+build/
+dist/
+
+# VuePress specific
+.vuepress/dist/
+.vuepress/.temp/
+.vuepress/.cache/
+
+# Next.js specific
+.next/
+out/
+
+# Nuxt.js specific
+.nuxt/
+dist/
+
+# Gatsby specific
+.cache/
+public/
+
+# Hexo specific
+.deploy_git/
+public/
+
+# Jekyll specific
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata/
+
+# Hugo specific
+public/
+resources/
+
+# Pelican specific
+output/
+__pycache__/
+
+# Nikola specific
+cache/
+.doit.db/
+
+# Gitiles specific
+.gitiles/
+
+# Gitiles cache
+.gitiles-cache/
+gitiles-cache/
+gitiles-temp/
+
+# Gitiles data
+gitiles-data/
+gitiles-temp/
+gitiles-cache/
+
+# Gitiles logs
+gitiles-logs/
+gitiles-logs-temp/
+gitiles-logs-data/
+
+# Gitiles metrics
+gitiles-metrics/
+gitiles-metrics-temp/
+gitiles-metrics-data/
+
+# Gitiles traces
+gitiles-traces/
+gitiles-traces-temp/
+gitiles-traces-data/
+
+# Gitiles audit
+gitiles-audit/
+gitiles-audit-temp/
+gitiles-audit-data/
+
+# Gitiles compliance
+gitiles-compliance/
+gitiles-compliance-temp/
+gitiles-compliance-data/
+
+# Gitiles governance
+gitiles-governance/
+gitiles-governance-temp/
+gitiles-governance-data/
+
+# Gitiles security
+gitiles-security/
+gitiles-security-temp/
+gitiles-security-data/
+
+# Gitiles monitoring
+gitiles-monitoring/
+gitiles-monitoring-temp/
+gitiles-monitoring-data/
+
+# Gitiles observability
+gitiles-observability/
+gitiles-observability-temp/
+gitiles-observability-data/
+
+# Gitiles performance
+gitiles-performance/
+gitiles-performance-temp/
+gitiles-performance-data/
+
+# Gitiles load testing
+gitiles-load-testing/
+gitiles-load-testing-temp/
+gitiles-load-testing-data/
+
+# Gitiles stress testing
+gitiles-stress-testing/
+gitiles-stress-testing-temp/
+gitiles-stress-testing-data/
+
+# Gitiles integration testing
+gitiles-integration-testing/
+gitiles-integration-testing-temp/
+gitiles-integration-testing-data/
+
+# Gitiles unit testing
+gitiles-unit-testing/
+gitiles-unit-testing-temp/
+gitiles-unit-testing-data/
+
+# Gitiles end-to-end testing
+gitiles-e2e-testing/
+gitiles-e2e-testing-temp/
+gitiles-e2e-testing-data/
+
+# Gitiles smoke testing
+gitiles-smoke-testing/
+gitiles-smoke-testing-temp/
+gitiles-smoke-testing-data/
+
+# Gitiles regression testing
+gitiles-regression-testing/
+gitiles-regression-testing-temp/
+gitiles-regression-testing-data/
+
+# Gitiles acceptance testing
+gitiles-acceptance-testing/
+gitiles-acceptance-testing-temp/
+gitiles-acceptance-testing-data/
+
+# Gitiles performance testing
+gitiles-performance-testing/
+gitiles-performance-testing-temp/
+gitiles-performance-testing-data/

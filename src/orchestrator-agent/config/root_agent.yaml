@@ -1,0 +1,22 @@
+name: "EnterpriseOrchestrator"
+description: "Central orchestrator for enterprise multi-agent system"
+
+llm:
+  provider: "openai"
+  model: "gpt-4"
+  temperature: 0.1
+  max_tokens: 2000
+
+agents:
+  - name: "DataSearchAgent"
+    url: "https://data-search-agent-service-url"
+    capabilities: ["database queries", "document search", "data retrieval"]
+  
+  - name: "ReportingAgent"
+    url: "https://reporting-agent-service-url"
+    capabilities: ["report generation", "analytics", "business insights"]
+
+observability:
+  tracing: true
+  metrics: true
+  log_level: "INFO"

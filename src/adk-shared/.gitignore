@@ -1,0 +1,351 @@
+# ADK Shared Library specific gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+nosetests.xml
+
+# Logs
+logs/
+*.log
+**/logs/
+**/*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Development files
+.env
+.env.*
+*.env
+
+# Shared library specific
+# Agent registry cache
+agent-registry-cache/
+registry-cache/
+agent-registry-temp/
+
+# Agent registry data
+agent-registry-data/
+registry-data/
+agent-registry-temp/
+
+# Agent registry logs
+agent-registry-logs/
+registry-logs/
+agent-registry-logs-temp/
+
+# Agent registry metrics
+agent-registry-metrics/
+registry-metrics/
+agent-registry-metrics-temp/
+
+# Agent registry traces
+agent-registry-traces/
+registry-traces/
+agent-registry-traces-temp/
+
+# Agent registry audit
+agent-registry-audit/
+registry-audit/
+agent-registry-audit-temp/
+
+# Agent registry compliance
+agent-registry-compliance/
+registry-compliance/
+agent-registry-compliance-temp/
+
+# Agent registry governance
+agent-registry-governance/
+registry-governance/
+agent-registry-governance-temp/
+
+# Agent registry security
+agent-registry-security/
+registry-security/
+agent-registry-security-temp/
+
+# Agent registry monitoring
+agent-registry-monitoring/
+registry-monitoring/
+agent-registry-monitoring-temp/
+
+# Agent registry observability
+agent-registry-observability/
+registry-observability/
+agent-registry-observability-temp/
+
+# Agent registry performance
+agent-registry-performance/
+registry-performance/
+agent-registry-performance-temp/
+
+# Observability cache
+observability-cache/
+observability-temp/
+observability-data/
+
+# Observability logs
+observability-logs/
+observability-logs-temp/
+observability-logs-data/
+
+# Observability metrics
+observability-metrics/
+observability-metrics-temp/
+observability-metrics-data/
+
+# Observability traces
+observability-traces/
+observability-traces-temp/
+observability-traces-data/
+
+# Observability audit
+observability-audit/
+observability-audit-temp/
+observability-audit-data/
+
+# Observability compliance
+observability-compliance/
+observability-compliance-temp/
+observability-compliance-data/
+
+# Observability governance
+observability-governance/
+observability-governance-temp/
+observability-governance-data/
+
+# Observability security
+observability-security/
+observability-security-temp/
+observability-security-data/
+
+# Observability monitoring
+observability-monitoring/
+observability-monitoring-temp/
+observability-monitoring-data/
+
+# Observability performance
+observability-performance/
+observability-performance-temp/
+observability-performance-data/
+
+# Security cache
+security-cache/
+security-temp/
+security-data/
+
+# Security logs
+security-logs/
+security-logs-temp/
+security-logs-data/
+
+# Security metrics
+security-metrics/
+security-metrics-temp/
+security-metrics-data/
+
+# Security traces
+security-traces/
+security-traces-temp/
+security-traces-data/
+
+# Security audit
+security-audit/
+security-audit-temp/
+security-audit-data/
+
+# Security compliance
+security-compliance/
+security-compliance-temp/
+security-compliance-data/
+
+# Security governance
+security-governance/
+security-governance-temp/
+security-governance-data/
+
+# Security monitoring
+security-monitoring/
+security-monitoring-temp/
+security-monitoring-data/
+
+# Security performance
+security-performance/
+security-performance-temp/
+security-performance-data/
+
+# Shared library cache
+shared-library-cache/
+shared-cache/
+shared-library-temp/
+
+# Shared library data
+shared-library-data/
+shared-data/
+shared-library-temp/
+
+# Shared library logs
+shared-library-logs/
+shared-logs/
+shared-library-logs-temp/
+
+# Shared library metrics
+shared-library-metrics/
+shared-metrics/
+shared-library-metrics-temp/
+
+# Shared library traces
+shared-library-traces/
+shared-traces/
+shared-library-traces-temp/
+
+# Shared library audit
+shared-library-audit/
+shared-audit/
+shared-library-audit-temp/
+
+# Shared library compliance
+shared-library-compliance/
+shared-compliance/
+shared-library-compliance-temp/
+
+# Shared library governance
+shared-library-governance/
+shared-governance/
+shared-library-governance-temp/
+
+# Shared library security
+shared-library-security/
+shared-security/
+shared-library-security-temp/
+
+# Shared library monitoring
+shared-library-monitoring/
+shared-monitoring/
+shared-library-monitoring-temp/
+
+# Shared library observability
+shared-library-observability/
+shared-observability/
+shared-library-observability-temp/
+
+# Shared library performance
+shared-library-performance/
+shared-performance/
+shared-library-performance-temp/
+
+# Shared library load testing
+shared-library-load-testing/
+shared-load-testing/
+shared-library-load-testing-temp/
+
+# Shared library stress testing
+shared-library-stress-testing/
+shared-stress-testing/
+shared-library-stress-testing-temp/
+
+# Shared library integration testing
+shared-library-integration-testing/
+shared-integration-testing/
+shared-library-integration-testing-temp/
+
+# Shared library unit testing
+shared-library-unit-testing/
+shared-unit-testing/
+shared-library-unit-testing-temp/
+
+# Shared library end-to-end testing
+shared-library-e2e-testing/
+shared-e2e-testing/
+shared-library-e2e-testing-temp/
+
+# Shared library smoke testing
+shared-library-smoke-testing/
+shared-smoke-testing/
+shared-library-smoke-testing-temp/
+
+# Shared library regression testing
+shared-library-regression-testing/
+shared-regression-testing/
+shared-library-regression-testing-temp/
+
+# Shared library acceptance testing
+shared-library-acceptance-testing/
+shared-acceptance-testing/
+shared-library-acceptance-testing-temp/
+
+# Shared library performance testing
+shared-library-performance-testing/
+shared-performance-testing/
+shared-library-performance-testing-temp/

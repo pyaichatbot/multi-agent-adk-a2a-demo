@@ -1,0 +1,46 @@
+tools:
+  query_database:
+    name: "query_database"
+    description: "Execute SQL queries against enterprise databases"
+    parameters:
+      - name: "query"
+        type: "string"
+        required: true
+        description: "SQL query to execute"
+      - name: "database"
+        type: "string"
+        required: false
+        default: "default"
+        description: "Target database name"
+    
+  search_documents:
+    name: "search_documents"
+    description: "Search through enterprise document repositories"
+    parameters:
+      - name: "query"
+        type: "string"
+        required: true
+        description: "Search query"
+      - name: "repository"
+        type: "string"
+        required: false
+        default: "default"
+        description: "Document repository to search"
+      - name: "limit"
+        type: "integer"
+        required: false
+        default: 10
+        description: "Maximum number of results"
+    
+  run_analytics:
+    name: "run_analytics"
+    description: "Execute analytics queries and generate insights"
+    parameters:
+      - name: "analysis_type"
+        type: "string"
+        required: true
+        description: "Type of analysis to perform"
+      - name: "parameters"
+        type: "object"
+        required: true
+        description: "Analysis parameters"

@@ -1,0 +1,22 @@
+policy_version: "1.0"
+description: "Governance policy for enterprise multi-agent system"
+
+rules:
+  orchestrator:
+    can_call: ["DataSearchAgent", "ReportingAgent"]
+    cannot_access: ["direct_database", "raw_files"]
+  
+  DataSearchAgent:
+    can_call: ["query_database", "search_documents"]
+    cannot_call: ["run_analytics"]
+    data_access_level: "read_only"
+  
+  ReportingAgent:
+    can_call: ["run_analytics", "query_database", "search_documents"]
+    data_access_level: "read_only"
+    can_generate: ["reports", "dashboards"]
+
+audit:
+  log_all_calls: true
+  retention_days: 90
+  compliance_checks: true

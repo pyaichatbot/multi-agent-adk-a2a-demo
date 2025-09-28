@@ -1,0 +1,24 @@
+name: "DataSearchAgent"
+description: "Specialized agent for enterprise data search and retrieval"
+
+llm:
+  provider: "openai"
+  model: "gpt-4"
+  temperature: 0.1
+  max_tokens: 1500
+
+mcp_server:
+  url: "https://mcp-server-service-url"
+  tools: ["query_database", "search_documents"]
+  timeout: 30
+
+capabilities:
+  - "SQL query execution"
+  - "Document search"
+  - "Data extraction"
+  - "Result formatting"
+
+observability:
+  tracing: true
+  metrics: true
+  log_level: "INFO"

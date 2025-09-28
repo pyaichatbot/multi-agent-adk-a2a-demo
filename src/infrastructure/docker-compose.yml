@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  mcp-server:
+    build: ./mcp-server
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}
+    volumes:
+      - ./mcp-server/config:/app/config
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  orchestrator-agent:
+    build: ./orchestrator-agent
+    ports:
+      - "8001:8000"
+    environment:
+      - ENVIRONMENT=development
+      - MCP_SERVER_URL=http://mcp-server:8000
+    depends_on:
+      - mcp-server
+    volumes:
+      - ./orchestrator-agent/config:/app/config
+
+  data-search-agent:
+    build: ./data-search-agent
+    ports:
+      - "8002:8000"
+    environment:
+      - ENVIRONMENT=development
+      - MCP_SERVER_URL=http://mcp-server:8000
+    depends_on:
+      - mcp-server
+    volumes:
+      - ./data-search-agent/config:/app/config
+
+  reporting-agent:
+    build: ./reporting-agent
+    ports:
+      - "8003:8000"
+    environment:
+      - ENVIRONMENT=development
+      - MCP_SERVER_URL=http://mcp-server:8000
+    depends_on:
+      - mcp-server
+    volumes:
+      - ./reporting-agent/config:/app/config

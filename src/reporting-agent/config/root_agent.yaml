@@ -1,0 +1,24 @@
+name: "ReportingAgent"
+description: "Specialized agent for business reporting and analytics"
+
+llm:
+  provider: "openai"
+  model: "gpt-4"
+  temperature: 0.1
+  max_tokens: 2000
+
+mcp_server:
+  url: "https://mcp-server-service-url"
+  tools: ["run_analytics", "query_database", "search_documents"]
+  timeout: 30
+
+capabilities:
+  - "Report generation"
+  - "Analytics processing"
+  - "Business insights"
+  - "Data visualization"
+
+observability:
+  tracing: true
+  metrics: true
+  log_level: "INFO"
