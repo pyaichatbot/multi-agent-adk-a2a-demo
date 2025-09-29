@@ -6,7 +6,9 @@ import asyncio
 import yaml
 from typing import Dict, Any, List
 
-from adk import Agent, FunctionTool
+from google.adk import Agent
+from google.adk.agents import LlmAgent
+from google.adk.tools import FunctionTool
 from adk_shared.agent_registration import SelfRegisteringAgent, AgentCapability
 from adk_shared.observability import setup_observability
 from adk_shared.litellm_integration import create_agent_llm_config, get_litellm_wrapper
@@ -29,7 +31,7 @@ class CustomAnalyticsTool(FunctionTool):
         }
 
 
-class MyCustomAgent(SelfRegisteringAgent, Agent):
+class MyCustomAgent(SelfRegisteringAgent, LlmAgent):
     """Example custom agent with auto-registration"""
     
     def __init__(self, config_path: str = "config/agent_config.yaml"):

@@ -9,14 +9,16 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements
-COPY requirements.txt .
+COPY example-agent/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy shared libraries
-COPY ../adk-shared ./adk-shared
+COPY adk-shared ./adk-shared
+# Create symlink for Python import (hyphens not allowed in module names)
+RUN ln -sf adk-shared adk_shared
 
 # Copy application code
-COPY . .
+COPY example-agent/ .
 
 # Create non-root user
 RUN groupadd -r appuser && useradd -r -g appuser appuser

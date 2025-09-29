@@ -2,12 +2,18 @@ version: '3.8'
 
 services:
   mcp-server:
-    build: ./mcp-server
+    build:
+      context: ../
+      dockerfile: mcp-server/Dockerfile
     ports:
       - "8000:8000"
     environment:
       - ENVIRONMENT=development
       - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}
+      # Azure OpenAI Configuration
+      - AZURE_API_KEY=${AZURE_API_KEY}
+      - AZURE_API_BASE=${AZURE_API_BASE}
+      - AZURE_API_VERSION=${AZURE_API_VERSION}
     volumes:
       - ./mcp-server/config:/app/config
     healthcheck:
@@ -17,37 +23,116 @@ services:
       retries: 3
 
   orchestrator-agent:
-    build: ./orchestrator-agent
+    build:
+      context: ../
+      dockerfile: orchestrator-agent/Dockerfile
     ports:
       - "8001:8000"
     environment:
       - ENVIRONMENT=development
       - MCP_SERVER_URL=http://mcp-server:8000
+      # Azure OpenAI Configuration
+      - AZURE_API_KEY=${AZURE_API_KEY}
+      - AZURE_API_BASE=${AZURE_API_BASE}
+      - AZURE_API_VERSION=${AZURE_API_VERSION}
+      - ORCHESTRATOR_AZURE_MODEL=${ORCHESTRATOR_AZURE_MODEL:-gpt-4o}
     depends_on:
       - mcp-server
     volumes:
       - ./orchestrator-agent/config:/app/config
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   data-search-agent:
-    build: ./data-search-agent
+    build:
+      context: ../
+      dockerfile: data-search-agent/Dockerfile
     ports:
       - "8002:8000"
     environment:
       - ENVIRONMENT=development
       - MCP_SERVER_URL=http://mcp-server:8000
+      # Azure OpenAI Configuration
+      - AZURE_API_KEY=${AZURE_API_KEY}
+      - AZURE_API_BASE=${AZURE_API_BASE}
+      - AZURE_API_VERSION=${AZURE_API_VERSION}
+      - DATA_SEARCH_AZURE_MODEL=${DATA_SEARCH_AZURE_MODEL:-gpt-4o}
     depends_on:
       - mcp-server
     volumes:
       - ./data-search-agent/config:/app/config
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   reporting-agent:
-    build: ./reporting-agent
+    build:
+      context: ../
+      dockerfile: reporting-agent/Dockerfile
     ports:
       - "8003:8000"
     environment:
       - ENVIRONMENT=development
       - MCP_SERVER_URL=http://mcp-server:8000
+      # Azure OpenAI Configuration
+      - AZURE_API_KEY=${AZURE_API_KEY}
+      - AZURE_API_BASE=${AZURE_API_BASE}
+      - AZURE_API_VERSION=${AZURE_API_VERSION}
+      - REPORTING_AZURE_MODEL=${REPORTING_AZURE_MODEL:-gpt-4o}
     depends_on:
       - mcp-server
     volumes:
       - ./reporting-agent/config:/app/config
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  example-agent:
+    build:
+      context: ../
+      dockerfile: example-agent/Dockerfile
+    ports:
+      - "8004:8000"
+    environment:
+      - ENVIRONMENT=development
+      - MCP_SERVER_URL=http://mcp-server:8000
+      # Azure OpenAI Configuration
+      - AZURE_API_KEY=${AZURE_API_KEY}
+      - AZURE_API_BASE=${AZURE_API_BASE}
+      - AZURE_API_VERSION=${AZURE_API_VERSION}
+      - EXAMPLE_AGENT_AZURE_MODEL=${EXAMPLE_AGENT_AZURE_MODEL:-gpt-4o}
+      # Registry Configuration
+      - REGISTRY_URL=${REGISTRY_URL:-redis://redis:6379}
+      - AUTO_REGISTER=${AUTO_REGISTER:-true}
+    depends_on:
+      - mcp-server
+      - redis
+    volumes:
+      - ./example-agent/config:/app/config
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  redis_data:

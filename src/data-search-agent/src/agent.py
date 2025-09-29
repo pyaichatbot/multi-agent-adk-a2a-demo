@@ -8,14 +8,16 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 import logging
 
-from adk import Agent, MCPToolset
+from google.adk import Agent
+from google.adk.agents import LlmAgent
+from google.adk.tools import MCPToolset
 from adk_shared.observability import get_tracer
 from adk_shared.security import get_auth_token
 from adk_shared.litellm_integration import create_agent_llm_config, get_litellm_wrapper
 import yaml
 
 
-class DataSearchAgent(Agent):
+class DataSearchAgent(LlmAgent):
     """Specialized agent for data search and retrieval"""
     
     def __init__(self, config_path: str = "config/root_agent.yaml"):
