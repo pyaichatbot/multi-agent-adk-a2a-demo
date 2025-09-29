@@ -22,7 +22,7 @@ graph TD
     M --> P[Loop]
     
     N --> Q[Step 1 → Step 2 → Step 3]
-    O --> R[Step 1 || Step 2 || Step 3]
+    O --> R[Step 1 & Step 2 & Step 3]
     P --> S[Repeat until condition met]
 ```
 

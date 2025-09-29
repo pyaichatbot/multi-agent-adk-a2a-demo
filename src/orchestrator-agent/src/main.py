@@ -146,6 +146,71 @@ async def list_orchestration_patterns():
     }
 
 
+@app.get("/override-options")
+async def list_override_options():
+    """List available user override options"""
+    return {
+        "override_options": {
+            "orchestration_pattern": {
+                "description": "Override automatic pattern selection",
+                "options": ["sequential", "parallel", "loop", "simple"],
+                "example": "{\"orchestration_pattern\": \"parallel\"}"
+            },
+            "agents": {
+                "description": "Specify which agents to use",
+                "options": "List of agent names from /agents endpoint",
+                "example": "{\"agents\": [\"DataSearchAgent\", \"ReportingAgent\"]}"
+            },
+            "agent_sequence": {
+                "description": "Specify order of agents for sequential execution",
+                "options": "Ordered list of agent names",
+                "example": "{\"agent_sequence\": [\"DataSearchAgent\", \"ReportingAgent\"]}"
+            },
+            "parallel_config": {
+                "description": "Configuration for parallel execution",
+                "options": {
+                    "timeout": "Maximum execution time in seconds",
+                    "fail_fast": "Stop on first failure (boolean)"
+                },
+                "example": "{\"parallel_config\": {\"timeout\": 30, \"fail_fast\": false}}"
+            },
+            "loop_config": {
+                "description": "Configuration for loop execution",
+                "options": {
+                    "max_iterations": "Maximum number of iterations",
+                    "condition": "Condition to check for completion"
+                },
+                "example": "{\"loop_config\": {\"max_iterations\": 5, \"condition\": \"accuracy > 0.9\"}}"
+            }
+        },
+        "usage_examples": {
+            "sequential_override": {
+                "query": "Get data and generate report",
+                "context": {
+                    "orchestration_pattern": "sequential",
+                    "agent_sequence": ["DataSearchAgent", "ReportingAgent"]
+                }
+            },
+            "parallel_override": {
+                "query": "Analyze data from multiple sources",
+                "context": {
+                    "orchestration_pattern": "parallel",
+                    "agents": ["DataSearchAgent", "ReportingAgent", "ExampleAgent"],
+                    "parallel_config": {"timeout": 30, "fail_fast": false}
+                }
+            },
+            "loop_override": {
+                "query": "Refine analysis iteratively",
+                "context": {
+                    "orchestration_pattern": "loop",
+                    "agents": ["DataSearchAgent", "ReportingAgent"],
+                    "loop_config": {"max_iterations": 5, "condition": "accuracy > 0.9"}
+                }
+            }
+        }
+    }
+
+
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)

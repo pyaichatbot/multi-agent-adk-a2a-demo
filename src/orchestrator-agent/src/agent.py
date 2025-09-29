@@ -118,12 +118,18 @@ class EnterpriseOrchestrator(LlmAgent):
             # Fallback to hardcoded configuration if discovery fails
     
     async def process_request(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Process request using ADK LLM-driven delegation"""
+        """Process request using ADK LLM-driven delegation with user overrides"""
         # Ensure agents are discovered
         if REGISTRY_AVAILABLE and not self.agents:
             await self.start_service_discovery()
         
-        # Determine orchestration pattern
+        # Check for user overrides in context
+        user_override = self._extract_user_overrides(context)
+        
+        if user_override:
+            return await self._execute_user_override(query, context, user_override)
+        
+        # Determine orchestration pattern automatically
         orchestration_pattern = await self._determine_orchestration_pattern(query, context)
         
         if orchestration_pattern == "sequential":
@@ -251,6 +257,216 @@ class EnterpriseOrchestrator(LlmAgent):
         except Exception as e:
             logging.error(f"Pattern determination failed: {e}")
             return "simple"
+    
+    def _extract_user_overrides(self, context: Dict[str, Any] = None) -> Optional[Dict[str, Any]]:
+        """Extract user overrides from context"""
+        if not context:
+            return None
+        
+        overrides = {}
+        
+        # Check for explicit orchestration pattern
+        if "orchestration_pattern" in context:
+            pattern = context["orchestration_pattern"]
+            if pattern in ["sequential", "parallel", "loop", "simple"]:
+                overrides["pattern"] = pattern
+        
+        # Check for explicit agent list
+        if "agents" in context:
+            agents = context["agents"]
+            if isinstance(agents, list) and len(agents) > 0:
+                overrides["agents"] = agents
+        
+        # Check for explicit agent order (for sequential)
+        if "agent_sequence" in context:
+            sequence = context["agent_sequence"]
+            if isinstance(sequence, list) and len(sequence) > 0:
+                overrides["agent_sequence"] = sequence
+        
+        # Check for parallel execution config
+        if "parallel_config" in context:
+            parallel_config = context["parallel_config"]
+            if isinstance(parallel_config, dict):
+                overrides["parallel_config"] = parallel_config
+        
+        # Check for loop configuration
+        if "loop_config" in context:
+            loop_config = context["loop_config"]
+            if isinstance(loop_config, dict):
+                overrides["loop_config"] = loop_config
+        
+        return overrides if overrides else None
+    
+    async def _execute_user_override(self, query: str, context: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute request with user-specified overrides"""
+        transaction_id = str(uuid.uuid4())
+        
+        with self.tracer.start_as_current_span("user_override_execution") as span:
+            span.set_attribute("transaction_id", transaction_id)
+            span.set_attribute("override_pattern", override.get("pattern", "unknown"))
+            
+            try:
+                pattern = override.get("pattern", "simple")
+                
+                if pattern == "sequential":
+                    return await self._execute_sequential_override(query, context, override)
+                elif pattern == "parallel":
+                    return await self._execute_parallel_override(query, context, override)
+                elif pattern == "loop":
+                    return await self._execute_loop_override(query, context, override)
+                else:
+                    return await self._execute_simple_override(query, context, override)
+                    
+            except Exception as e:
+                span.record_exception(e)
+                logging.error(f"User override execution failed: {transaction_id} - {str(e)}")
+                raise
+    
+    async def _execute_sequential_override(self, query: str, context: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute sequential pattern with user-specified agents"""
+        agent_sequence = override.get("agent_sequence", override.get("agents", []))
+        
+        if not agent_sequence:
+            raise ValueError("No agents specified for sequential execution")
+        
+        results = []
+        for agent_name in agent_sequence:
+            if agent_name not in self.agents:
+                raise ValueError(f"Agent '{agent_name}' not available")
+            
+            agent_client = self.agents[agent_name]
+            result = await agent_client.process_request(query, context)
+            results.append({
+                "agent": agent_name,
+                "result": result
+            })
+        
+        return {
+            "pattern": "sequential",
+            "user_override": True,
+            "agent_sequence": agent_sequence,
+            "results": results,
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    async def _execute_parallel_override(self, query: str, context: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute parallel pattern with user-specified agents"""
+        agents = override.get("agents", [])
+        parallel_config = override.get("parallel_config", {})
+        
+        if not agents:
+            raise ValueError("No agents specified for parallel execution")
+        
+        # Execute all agents concurrently
+        import asyncio
+        tasks = []
+        for agent_name in agents:
+            if agent_name not in self.agents:
+                raise ValueError(f"Agent '{agent_name}' not available")
+            
+            agent_client = self.agents[agent_name]
+            task = agent_client.process_request(query, context)
+            tasks.append((agent_name, task))
+        
+        # Wait for all tasks to complete
+        results = []
+        for agent_name, task in tasks:
+            try:
+                result = await task
+                results.append({
+                    "agent": agent_name,
+                    "result": result,
+                    "status": "success"
+                })
+            except Exception as e:
+                results.append({
+                    "agent": agent_name,
+                    "error": str(e),
+                    "status": "failed"
+                })
+        
+        return {
+            "pattern": "parallel",
+            "user_override": True,
+            "agents": agents,
+            "parallel_config": parallel_config,
+            "results": results,
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    async def _execute_loop_override(self, query: str, context: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute loop pattern with user-specified configuration"""
+        agents = override.get("agents", [])
+        loop_config = override.get("loop_config", {})
+        
+        if not agents:
+            raise ValueError("No agents specified for loop execution")
+        
+        max_iterations = loop_config.get("max_iterations", 10)
+        condition = loop_config.get("condition", "Check if result meets requirements")
+        iteration = 0
+        results = []
+        
+        while iteration < max_iterations:
+            iteration += 1
+            
+            # Execute agents in sequence for this iteration
+            iteration_results = []
+            for agent_name in agents:
+                if agent_name not in self.agents:
+                    raise ValueError(f"Agent '{agent_name}' not available")
+                
+                agent_client = self.agents[agent_name]
+                result = await agent_client.process_request(query, context)
+                iteration_results.append({
+                    "agent": agent_name,
+                    "result": result
+                })
+            
+            results.append({
+                "iteration": iteration,
+                "results": iteration_results
+            })
+            
+            # Check if condition is met (simplified for now)
+            # In a real implementation, this would use the LLM to evaluate the condition
+            if iteration >= 3:  # Simplified condition
+                break
+        
+        return {
+            "pattern": "loop",
+            "user_override": True,
+            "agents": agents,
+            "loop_config": loop_config,
+            "iterations_completed": iteration,
+            "results": results,
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    async def _execute_simple_override(self, query: str, context: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute simple pattern with user-specified agent"""
+        agents = override.get("agents", [])
+        
+        if not agents:
+            raise ValueError("No agent specified for simple execution")
+        
+        if len(agents) > 1:
+            raise ValueError("Simple execution requires exactly one agent")
+        
+        agent_name = agents[0]
+        if agent_name not in self.agents:
+            raise ValueError(f"Agent '{agent_name}' not available")
+        
+        agent_client = self.agents[agent_name]
+        result = await agent_client.process_request(query, context)
+        
+        return {
+            "pattern": "simple",
+            "user_override": True,
+            "agent": agent_name,
+            "result": result,
+            "timestamp": datetime.now().isoformat()
+        }
     
     async def _execute_sequential(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Execute sequential orchestration pattern"""

@@ -173,6 +173,75 @@ curl -X GET http://localhost:8001/patterns
 }
 ```
 
+### List User Override Options
+```cmd
+curl -X GET http://localhost:8001/override-options
+```
+
+**Expected Response:**
+```json
+{
+  "override_options": {
+    "orchestration_pattern": {
+      "description": "Override automatic pattern selection",
+      "options": ["sequential", "parallel", "loop", "simple"],
+      "example": "{\"orchestration_pattern\": \"parallel\"}"
+    },
+    "agents": {
+      "description": "Specify which agents to use",
+      "options": "List of agent names from /agents endpoint",
+      "example": "{\"agents\": [\"DataSearchAgent\", \"ReportingAgent\"]}"
+    },
+    "agent_sequence": {
+      "description": "Specify order of agents for sequential execution",
+      "options": "Ordered list of agent names",
+      "example": "{\"agent_sequence\": [\"DataSearchAgent\", \"ReportingAgent\"]}"
+    },
+    "parallel_config": {
+      "description": "Configuration for parallel execution",
+      "options": {
+        "timeout": "Maximum execution time in seconds",
+        "fail_fast": "Stop on first failure (boolean)"
+      },
+      "example": "{\"parallel_config\": {\"timeout\": 30, \"fail_fast\": false}}"
+    },
+    "loop_config": {
+      "description": "Configuration for loop execution",
+      "options": {
+        "max_iterations": "Maximum number of iterations",
+        "condition": "Condition to check for completion"
+      },
+      "example": "{\"loop_config\": {\"max_iterations\": 5, \"condition\": \"accuracy > 0.9\"}}"
+    }
+  },
+  "usage_examples": {
+    "sequential_override": {
+      "query": "Get data and generate report",
+      "context": {
+        "orchestration_pattern": "sequential",
+        "agent_sequence": ["DataSearchAgent", "ReportingAgent"]
+      }
+    },
+    "parallel_override": {
+      "query": "Analyze data from multiple sources",
+      "context": {
+        "orchestration_pattern": "parallel",
+        "agents": ["DataSearchAgent", "ReportingAgent", "ExampleAgent"],
+        "parallel_config": {"timeout": 30, "fail_fast": false}
+      }
+    },
+    "loop_override": {
+      "query": "Refine analysis iteratively",
+      "context": {
+        "orchestration_pattern": "loop",
+        "agents": ["DataSearchAgent", "ReportingAgent"],
+        "loop_config": {"max_iterations": 5, "condition": "accuracy > 0.9"}
+      }
+    }
+  }
+}
+```
+
 ### Process Request - Data Search Query
 ```cmd
 curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -d "{\"query\":\"Find all sales data for Q4 2024\",\"context\":{\"department\":\"sales\",\"priority\":\"high\"}}"
@@ -201,6 +270,287 @@ curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -
 ### Process Request - Loop Orchestration
 ```cmd
 curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -d "{\"query\":\"Keep refining the analysis until we achieve 95% confidence in the results\",\"context\":{\"orchestration_pattern\":\"loop\",\"target_confidence\":0.95,\"max_iterations\":10}}"
+```
+
+## User Override Examples
+
+### Override Orchestration Pattern
+```cmd
+curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -d "{\"query\":\"Analyze sales data\",\"context\":{\"orchestration_pattern\":\"parallel\"}}"
+```
+
+### Override Agent Selection - Sequential
+```cmd
+curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -d "{\"query\":\"Get data and generate report\",\"context\":{\"orchestration_pattern\":\"sequential\",\"agent_sequence\":[\"DataSearchAgent\",\"ReportingAgent\"]}}"
+```
+
+### Override Agent Selection - Parallel
+```cmd
+curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -d "{\"query\":\"Analyze data from multiple sources\",\"context\":{\"orchestration_pattern\":\"parallel\",\"agents\":[\"DataSearchAgent\",\"ReportingAgent\",\"ExampleAgent\"],\"parallel_config\":{\"timeout\":30,\"fail_fast\":false}}}"
+```
+
+### Override Agent Selection - Loop
+```cmd
+curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -d "{\"query\":\"Refine analysis iteratively\",\"context\":{\"orchestration_pattern\":\"loop\",\"agents\":[\"DataSearchAgent\",\"ReportingAgent\"],\"loop_config\":{\"max_iterations\":5,\"condition\":\"accuracy > 0.9\"}}}"
+```
+
+### Override Agent Selection - Simple
+```cmd
+curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -d "{\"query\":\"Search for specific data\",\"context\":{\"orchestration_pattern\":\"simple\",\"agents\":[\"DataSearchAgent\"]}}"
+```
+
+## Comprehensive Override Testing
+
+### Test 1: Override Agents Only (Auto Pattern Selection)
+```cmd
+curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -d "{\"query\":\"Analyze customer data and generate insights\",\"context\":{\"agents\":[\"DataSearchAgent\",\"ReportingAgent\"],\"business_context\":\"customer_analysis\"}}"
+```
+
+**Expected Response:**
+```json
+{
+  "pattern": "sequential",
+  "user_override": true,
+  "agents": ["DataSearchAgent", "ReportingAgent"],
+  "results": [
+    {
+      "agent": "DataSearchAgent",
+      "result": {
+        "status": "success",
+        "data": "Customer data retrieved successfully"
+      }
+    },
+    {
+      "agent": "ReportingAgent", 
+      "result": {
+        "status": "success",
+        "insights": "Customer insights generated"
+      }
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### Test 2: Override Pattern Only (Auto Agent Selection)
+```cmd
+curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -d "{\"query\":\"Process multiple data sources simultaneously\",\"context\":{\"orchestration_pattern\":\"parallel\",\"data_sources\":[\"database\",\"documents\",\"apis\"],\"timeout\":60}}"
+```
+
+**Expected Response:**
+```json
+{
+  "pattern": "parallel",
+  "user_override": true,
+  "agents": ["DataSearchAgent", "ReportingAgent", "ExampleAgent"],
+  "parallel_config": {"timeout": 60},
+  "results": [
+    {
+      "agent": "DataSearchAgent",
+      "result": {"status": "success", "data": "Database data processed"},
+      "status": "success"
+    },
+    {
+      "agent": "ReportingAgent",
+      "result": {"status": "success", "data": "Document data processed"},
+      "status": "success"
+    },
+    {
+      "agent": "ExampleAgent",
+      "result": {"status": "success", "data": "API data processed"},
+      "status": "success"
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### Test 3: Override Both Pattern and Agents
+```cmd
+curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -d "{\"query\":\"Execute iterative analysis with specific agents\",\"context\":{\"orchestration_pattern\":\"loop\",\"agents\":[\"DataSearchAgent\",\"ReportingAgent\"],\"loop_config\":{\"max_iterations\":3,\"condition\":\"accuracy > 0.85\"},\"analysis_type\":\"iterative_refinement\"}}"
+```
+
+**Expected Response:**
+```json
+{
+  "pattern": "loop",
+  "user_override": true,
+  "agents": ["DataSearchAgent", "ReportingAgent"],
+  "loop_config": {
+    "max_iterations": 3,
+    "condition": "accuracy > 0.85"
+  },
+  "iterations_completed": 2,
+  "results": [
+    {
+      "iteration": 1,
+      "results": [
+        {
+          "agent": "DataSearchAgent",
+          "result": {"accuracy": 0.78, "status": "needs_refinement"}
+        },
+        {
+          "agent": "ReportingAgent",
+          "result": {"accuracy": 0.82, "status": "needs_refinement"}
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "results": [
+        {
+          "agent": "DataSearchAgent",
+          "result": {"accuracy": 0.89, "status": "target_achieved"}
+        },
+        {
+          "agent": "ReportingAgent",
+          "result": {"accuracy": 0.91, "status": "target_achieved"}
+        }
+      ]
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### Test 4: Complex Sequential Override with Custom Order
+```cmd
+curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -d "{\"query\":\"Execute complex business intelligence workflow\",\"context\":{\"orchestration_pattern\":\"sequential\",\"agent_sequence\":[\"DataSearchAgent\",\"ExampleAgent\",\"ReportingAgent\"],\"workflow_type\":\"comprehensive_bi\",\"stakeholders\":[\"executives\",\"analysts\"]}}"
+```
+
+**Expected Response:**
+```json
+{
+  "pattern": "sequential",
+  "user_override": true,
+  "agent_sequence": ["DataSearchAgent", "ExampleAgent", "ReportingAgent"],
+  "results": [
+    {
+      "agent": "DataSearchAgent",
+      "result": {
+        "status": "success",
+        "data_retrieved": "Q4 sales data, customer demographics, product performance",
+        "data_quality": "high"
+      }
+    },
+    {
+      "agent": "ExampleAgent",
+      "result": {
+        "status": "success",
+        "analytics": "Advanced ML analysis completed",
+        "insights": "Customer segmentation and trend analysis"
+      }
+    },
+    {
+      "agent": "ReportingAgent",
+      "result": {
+        "status": "success",
+        "report": "Executive summary report generated",
+        "format": "PDF",
+        "sections": ["executive_summary", "financial_performance", "strategic_recommendations"]
+      }
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### Test 5: Parallel Override with Failure Handling
+```cmd
+curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -d "{\"query\":\"Process data from multiple sources with error handling\",\"context\":{\"orchestration_pattern\":\"parallel\",\"agents\":[\"DataSearchAgent\",\"ReportingAgent\",\"ExampleAgent\"],\"parallel_config\":{\"timeout\":30,\"fail_fast\":false},\"data_sources\":[\"primary_db\",\"backup_db\",\"external_api\"]}}"
+```
+
+**Expected Response:**
+```json
+{
+  "pattern": "parallel",
+  "user_override": true,
+  "agents": ["DataSearchAgent", "ReportingAgent", "ExampleAgent"],
+  "parallel_config": {
+    "timeout": 30,
+    "fail_fast": false
+  },
+  "results": [
+    {
+      "agent": "DataSearchAgent",
+      "result": {"status": "success", "data": "Primary database processed successfully"},
+      "status": "success"
+    },
+    {
+      "agent": "ReportingAgent",
+      "result": {"status": "success", "data": "Backup database processed successfully"},
+      "status": "success"
+    },
+    {
+      "agent": "ExampleAgent",
+      "result": {"error": "External API timeout", "status": "failed"},
+      "status": "failed"
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### Test 6: Loop Override with Custom Iteration Logic
+```cmd
+curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -d "{\"query\":\"Refine model until convergence criteria is met\",\"context\":{\"orchestration_pattern\":\"loop\",\"agents\":[\"DataSearchAgent\",\"ExampleAgent\"],\"loop_config\":{\"max_iterations\":5,\"condition\":\"convergence_threshold < 0.01\",\"convergence_metric\":\"rmse\"},\"model_type\":\"predictive_analytics\"}}"
+```
+
+**Expected Response:**
+```json
+{
+  "pattern": "loop",
+  "user_override": true,
+  "agents": ["DataSearchAgent", "ExampleAgent"],
+  "loop_config": {
+    "max_iterations": 5,
+    "condition": "convergence_threshold < 0.01",
+    "convergence_metric": "rmse"
+  },
+  "iterations_completed": 3,
+  "results": [
+    {
+      "iteration": 1,
+      "results": [
+        {
+          "agent": "DataSearchAgent",
+          "result": {"rmse": 0.15, "convergence": false}
+        },
+        {
+          "agent": "ExampleAgent",
+          "result": {"rmse": 0.12, "convergence": false}
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "results": [
+        {
+          "agent": "DataSearchAgent",
+          "result": {"rmse": 0.08, "convergence": false}
+        },
+        {
+          "agent": "ExampleAgent",
+          "result": {"rmse": 0.06, "convergence": false}
+        }
+      ]
+    },
+    {
+      "iteration": 3,
+      "results": [
+        {
+          "agent": "DataSearchAgent",
+          "result": {"rmse": 0.005, "convergence": true}
+        },
+        {
+          "agent": "ExampleAgent",
+          "result": {"rmse": 0.003, "convergence": true}
+        }
+      ]
+    }
+  ],
+  "timestamp": "2024-01-15T10:30:00Z"
+}
 ```
 
 ---
