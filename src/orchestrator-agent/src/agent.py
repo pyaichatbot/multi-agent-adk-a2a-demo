@@ -29,14 +29,27 @@ except ImportError:
     print("Warning: Security module not available, using mock implementations")
     SECURITY_AVAILABLE = False
     def validate_policy(policy, source, target): return True
+
+try:
+    from adk_shared.agent_registry import RedisAgentRegistry, AgentMetadata, AgentCapability, AgentStatus
+    REGISTRY_AVAILABLE = True
+except ImportError:
+    print("Warning: Agent registry not available, using mock implementations")
+    REGISTRY_AVAILABLE = False
+    def RedisAgentRegistry(): return None
+    def AgentMetadata(): return None
+    def AgentCapability(): return None
+    def AgentStatus(): return None
+
 from adk_shared.litellm_integration import create_agent_llm_config, get_litellm_wrapper
 import yaml
 
 
 class EnterpriseOrchestrator(LlmAgent):
-    """Enterprise orchestrator with dynamic routing using ADK patterns"""
+    """Enterprise orchestrator with dynamic routing using service discovery"""
     
-    def __init__(self, config_path: str = "config/root_agent.yaml", policy_path: str = "config/policy.yaml"):
+    def __init__(self, config_path: str = "config/root_agent.yaml", policy_path: str = "config/policy.yaml", 
+                 registry_url: str = "redis://localhost:6379"):
         # Load configurations
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
@@ -51,30 +64,77 @@ class EnterpriseOrchestrator(LlmAgent):
         super().__init__(
             name="EnterpriseOrchestrator",
             description="Central orchestrator for enterprise multi-agent system with dynamic routing",
-            instruction="You are an enterprise orchestrator. Analyze incoming requests and route them to the most appropriate specialized agent. You can route to: DataSearchAgent for data queries, ReportingAgent for reports and analytics, or ExampleAgent for examples and demos.",
+            instruction="You are an enterprise orchestrator. Analyze incoming requests and route them to the most appropriate specialized agent using service discovery.",
             model=llm_config.get('model', 'gpt-4'),
             tools=[],  # We'll add routing tools
         )
         
-        # Initialize A2A clients for external agent communication
-        self.agents = {}
-        for agent_config in config['agents']:
-            client = A2AClient(
-                agent_url=agent_config['url'],
-                agent_name=agent_config['name'],
-                capabilities=agent_config['capabilities']
-            )
-            self.agents[agent_config['name']] = client
+        # Initialize service discovery
+        if REGISTRY_AVAILABLE:
+            self.registry = RedisAgentRegistry(registry_url)
+            self.agents = {}  # Will be populated dynamically
+        else:
+            # Fallback to hardcoded configuration
+            self.agents = {}
+            for agent_config in config.get('agents', []):
+                client = A2AClient(
+                    agent_url=agent_config['url'],
+                    agent_name=agent_config['name'],
+                    capabilities=agent_config['capabilities']
+                )
+                self.agents[agent_config['name']] = client
         
         # Initialize LiteLLM wrapper for enhanced functionality
         self.litellm_wrapper = get_litellm_wrapper('orchestrator')
         self.tracer = get_tracer("orchestrator-agent")
+        
+        # Orchestration patterns
+        self.sequential_agent = None
+        self.parallel_agent = None
+        self.loop_agent = None
+    
+    async def start_service_discovery(self):
+        """Start service discovery and populate agent pool"""
+        if not REGISTRY_AVAILABLE:
+            return
+        
+        try:
+            # Discover available agents
+            available_agents = await self.registry.list_agents(status=AgentStatus.HEALTHY)
+            
+            # Create A2A clients for discovered agents
+            for agent_metadata in available_agents:
+                client = A2AClient(
+                    agent_url=agent_metadata.endpoint_url,
+                    agent_name=agent_metadata.name,
+                    capabilities=[cap.name for cap in agent_metadata.capabilities]
+                )
+                self.agents[agent_metadata.name] = client
+                
+            logging.info(f"Discovered {len(self.agents)} agents via service discovery")
+            
+        except Exception as e:
+            logging.error(f"Service discovery failed: {e}")
+            # Fallback to hardcoded configuration if discovery fails
     
     async def process_request(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Process request using ADK LLM-driven delegation"""
-        # Use the LlmAgent's built-in capabilities to analyze and route
-        # The LLM will decide whether to handle directly or delegate
-        return await self.route_request(query, context)
+        # Ensure agents are discovered
+        if REGISTRY_AVAILABLE and not self.agents:
+            await self.start_service_discovery()
+        
+        # Determine orchestration pattern
+        orchestration_pattern = await self._determine_orchestration_pattern(query, context)
+        
+        if orchestration_pattern == "sequential":
+            return await self._execute_sequential(query, context)
+        elif orchestration_pattern == "parallel":
+            return await self._execute_parallel(query, context)
+        elif orchestration_pattern == "loop":
+            return await self._execute_loop(query, context)
+        else:
+            # Default to simple routing
+            return await self.route_request(query, context)
     
     async def route_request(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Route request to most appropriate agent with governance checks"""
@@ -160,3 +220,124 @@ class EnterpriseOrchestrator(LlmAgent):
                 "agent": list(self.agents.keys())[0],
                 "reasoning": f"Fallback selection due to error: {str(e)}"
             }
+    
+    async def _determine_orchestration_pattern(self, query: str, context: Dict[str, Any] = None) -> str:
+        """Determine the best orchestration pattern for the request"""
+        pattern_prompt = f"""
+        Analyze the following request and determine the best orchestration pattern:
+        
+        Query: {query}
+        Context: {context or {}}
+        
+        Available patterns:
+        - sequential: Step-by-step execution (e.g., "First get data, then analyze, then report")
+        - parallel: Concurrent execution (e.g., "Get data from multiple sources simultaneously")
+        - loop: Iterative execution (e.g., "Keep refining until condition is met")
+        - simple: Single agent execution (default)
+        
+        Respond with just the pattern name.
+        """
+        
+        try:
+            messages = [{"role": "user", "content": pattern_prompt}]
+            response = await self.litellm_wrapper.chat_completion(messages)
+            pattern = response.get('content', '').strip().lower()
+            
+            if pattern in ["sequential", "parallel", "loop", "simple"]:
+                return pattern
+            else:
+                return "simple"
+                
+        except Exception as e:
+            logging.error(f"Pattern determination failed: {e}")
+            return "simple"
+    
+    async def _execute_sequential(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Execute sequential orchestration pattern"""
+        if not self.sequential_agent:
+            # Create SequentialAgent with discovered agents
+            sub_agents = []
+            for name, client in self.agents.items():
+                # Create LlmAgent for each discovered agent
+                sub_agent = LlmAgent(
+                    name=name,
+                    description=f"Agent for {name}",
+                    instruction=f"You are {name}. {client.capabilities}",
+                    model="gpt-4",
+                    tools=[]
+                )
+                sub_agents.append(sub_agent)
+            
+            self.sequential_agent = SequentialAgent(
+                name="SequentialOrchestrator",
+                description="Sequential execution orchestrator",
+                sub_agents=sub_agents
+            )
+        
+        # Execute sequential workflow
+        result = await self.sequential_agent.process_request(query, context)
+        return {
+            "pattern": "sequential",
+            "result": result,
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    async def _execute_parallel(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Execute parallel orchestration pattern"""
+        if not self.parallel_agent:
+            # Create ParallelAgent with discovered agents
+            sub_agents = []
+            for name, client in self.agents.items():
+                sub_agent = LlmAgent(
+                    name=name,
+                    description=f"Agent for {name}",
+                    instruction=f"You are {name}. {client.capabilities}",
+                    model="gpt-4",
+                    tools=[]
+                )
+                sub_agents.append(sub_agent)
+            
+            self.parallel_agent = ParallelAgent(
+                name="ParallelOrchestrator",
+                description="Parallel execution orchestrator",
+                sub_agents=sub_agents
+            )
+        
+        # Execute parallel workflow
+        result = await self.parallel_agent.process_request(query, context)
+        return {
+            "pattern": "parallel",
+            "result": result,
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    async def _execute_loop(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Execute loop orchestration pattern"""
+        if not self.loop_agent:
+            # Create LoopAgent with discovered agents
+            sub_agents = []
+            for name, client in self.agents.items():
+                sub_agent = LlmAgent(
+                    name=name,
+                    description=f"Agent for {name}",
+                    instruction=f"You are {name}. {client.capabilities}",
+                    model="gpt-4",
+                    tools=[]
+                )
+                sub_agents.append(sub_agent)
+            
+            self.loop_agent = LoopAgent(
+                name="LoopOrchestrator",
+                description="Loop execution orchestrator",
+                sub_agents=sub_agents,
+                max_iterations=10,  # Prevent infinite loops
+                condition_check="Check if the result meets the requirements"
+            )
+        
+        # Execute loop workflow
+        result = await self.loop_agent.process_request(query, context)
+        return {
+            "pattern": "loop",
+            "result": result,
+            "timestamp": datetime.now().isoformat()
+        }

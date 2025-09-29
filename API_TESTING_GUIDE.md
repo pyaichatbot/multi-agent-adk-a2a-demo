@@ -115,7 +115,7 @@ curl -X GET http://localhost:8001/health
 }
 ```
 
-### List Available Agents
+### List Available Agents (Service Discovery)
 ```cmd
 curl -X GET http://localhost:8001/agents
 ```
@@ -140,6 +140,39 @@ curl -X GET http://localhost:8001/agents
 }
 ```
 
+### List Orchestration Patterns
+```cmd
+curl -X GET http://localhost:8001/patterns
+```
+
+**Expected Response:**
+```json
+{
+  "patterns": [
+    {
+      "name": "sequential",
+      "description": "Step-by-step execution",
+      "use_case": "When tasks must be completed in order"
+    },
+    {
+      "name": "parallel", 
+      "description": "Concurrent execution",
+      "use_case": "When tasks can be executed simultaneously"
+    },
+    {
+      "name": "loop",
+      "description": "Iterative execution",
+      "use_case": "When tasks need to be repeated until condition is met"
+    },
+    {
+      "name": "simple",
+      "description": "Single agent execution",
+      "use_case": "When only one agent is needed"
+    }
+  ]
+}
+```
+
 ### Process Request - Data Search Query
 ```cmd
 curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -d "{\"query\":\"Find all sales data for Q4 2024\",\"context\":{\"department\":\"sales\",\"priority\":\"high\"}}"
@@ -153,6 +186,21 @@ curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -
 ### Process Request - Analytics Query
 ```cmd
 curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -d "{\"query\":\"Analyze customer behavior patterns and provide insights\",\"context\":{\"analysis_type\":\"behavioral\",\"timeframe\":\"6_months\"}}"
+```
+
+### Process Request - Sequential Orchestration
+```cmd
+curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -d "{\"query\":\"First get sales data, then analyze trends, then generate a comprehensive report\",\"context\":{\"orchestration_pattern\":\"sequential\",\"steps\":[\"data_retrieval\",\"analysis\",\"reporting\"]}}"
+```
+
+### Process Request - Parallel Orchestration
+```cmd
+curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -d "{\"query\":\"Get data from multiple sources simultaneously and aggregate the results\",\"context\":{\"orchestration_pattern\":\"parallel\",\"sources\":[\"database\",\"documents\",\"apis\"]}}"
+```
+
+### Process Request - Loop Orchestration
+```cmd
+curl -X POST http://localhost:8001/process -H "Content-Type: application/json" -d "{\"query\":\"Keep refining the analysis until we achieve 95% confidence in the results\",\"context\":{\"orchestration_pattern\":\"loop\",\"target_confidence\":0.95,\"max_iterations\":10}}"
 ```
 
 ---

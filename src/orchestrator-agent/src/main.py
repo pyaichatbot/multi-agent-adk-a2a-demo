@@ -41,7 +41,10 @@ async def lifespan(app: FastAPI):
     setup_observability("orchestrator-agent")
     orchestrator = EnterpriseOrchestrator()
     
-    logging.info("Orchestrator Agent started successfully")
+    # Start service discovery
+    await orchestrator.start_service_discovery()
+    
+    logging.info("Orchestrator Agent started successfully with service discovery")
     yield
     
     # Shutdown
@@ -110,6 +113,35 @@ async def list_agents():
                 "capabilities": client.capabilities
             }
             for name, client in orchestrator.agents.items()
+        ]
+    }
+
+
+@app.get("/patterns")
+async def list_orchestration_patterns():
+    """List available orchestration patterns"""
+    return {
+        "patterns": [
+            {
+                "name": "sequential",
+                "description": "Step-by-step execution",
+                "use_case": "When tasks must be completed in order"
+            },
+            {
+                "name": "parallel", 
+                "description": "Concurrent execution",
+                "use_case": "When tasks can be executed simultaneously"
+            },
+            {
+                "name": "loop",
+                "description": "Iterative execution",
+                "use_case": "When tasks need to be repeated until condition is met"
+            },
+            {
+                "name": "simple",
+                "description": "Single agent execution",
+                "use_case": "When only one agent is needed"
+            }
         ]
     }
 
