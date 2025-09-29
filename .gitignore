@@ -151,7 +151,6 @@ test-output/
 
 # Monitoring and observability data
 monitoring/
-observability/
 metrics/
 traces/
 agent-registry/
