@@ -1,0 +1,471 @@
+# Enterprise Multi-Agent System - Main Project Dockerignore
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+docs/
+documentation/
+
+# Development files
+.env
+.env.*
+*.env
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+nosetests.xml
+
+# Logs
+logs/
+*.log
+**/logs/
+**/*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Configuration files with secrets
+**/config/secrets.yaml
+**/config/production.yaml
+**/config/*.env
+**/config/*.key
+**/config/*.pem
+**/config/*.crt
+**/config/*.secret
+
+# Enterprise Multi-Agent System specific
+# Local development data
+local/
+dev/
+development/
+local-data/
+
+# Test data
+test-data/
+test-results/
+test-output/
+.pytest_cache/
+
+# Performance profiling
+*.prof
+*.profile
+
+# Monitoring and observability data
+monitoring/
+observability/
+metrics/
+traces/
+agent-registry/
+registry-data/
+
+# MCP server data
+mcp-data/
+tool-cache/
+mcp-cache/
+
+# Orchestrator data
+orchestrator-data/
+routing-cache/
+orchestrator-cache/
+
+# Agent-specific data
+agent-data/
+agent-cache/
+agent-logs/
+agent-temp/
+
+# Enterprise specific data
+enterprise-data/
+compliance-data/
+audit-logs/
+governance-data/
+enterprise-cache/
+
+# Deployment artifacts
+deployment/
+artifacts/
+builds/
+deploy-scripts/
+
+# API documentation
+api-docs/
+swagger/
+openapi/
+
+# Load testing
+load-test-results/
+performance-tests/
+stress-tests/
+
+# Security scans
+security-scans/
+vulnerability-reports/
+security-reports/
+
+# Compliance reports
+compliance-reports/
+audit-reports/
+governance-reports/
+
+# Secrets and credentials
+secrets/
+.secrets/
+*.secret
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+credentials/
+auth-keys/
+
+# Local configuration overrides
+local-config/
+dev-config/
+override-config/
+
+# Cache directories
+cache/
+.cache/
+*_cache/
+*_cache/
+
+# Temporary agent data
+agent-temp/
+temp-agents/
+agent-runtime/
+
+# MCP tool cache
+tool-cache/
+mcp-tools-cache/
+tools-temp/
+
+# Orchestrator cache
+orchestrator-cache/
+routing-cache/
+selection-cache/
+
+# Agent registry cache
+registry-cache/
+discovery-cache/
+service-cache/
+
+# Enterprise cache
+enterprise-cache/
+compliance-cache/
+governance-cache/
+
+# Development tools
+dev-tools/
+development-tools/
+debug-tools/
+
+# Local databases
+local-db/
+dev-db/
+test-db/
+
+# Local Redis
+local-redis/
+dev-redis/
+test-redis/
+
+# Local monitoring
+local-monitoring/
+dev-monitoring/
+test-monitoring/
+
+# Local observability
+local-observability/
+dev-observability/
+test-observability/
+
+# Local security
+local-security/
+dev-security/
+test-security/
+
+# Local compliance
+local-compliance/
+dev-compliance/
+test-compliance/
+
+# Local governance
+local-governance/
+dev-governance/
+test-governance/
+
+# Local audit
+local-audit/
+dev-audit/
+test-audit/
+
+# Local logs
+local-logs/
+dev-logs/
+test-logs/
+
+# Local metrics
+local-metrics/
+dev-metrics/
+test-metrics/
+
+# Local traces
+local-traces/
+dev-traces/
+test-traces/
+
+# Local agent data
+local-agent-data/
+dev-agent-data/
+test-agent-data/
+
+# Local MCP data
+local-mcp-data/
+dev-mcp-data/
+test-mcp-data/
+
+# Local orchestrator data
+local-orchestrator-data/
+dev-orchestrator-data/
+test-orchestrator-data/
+
+# Local reporting data
+local-reporting-data/
+dev-reporting-data/
+test-reporting-data/
+
+# Local search data
+local-search-data/
+dev-search-data/
+test-search-data/
+
+# Local analytics data
+local-analytics-data/
+dev-analytics-data/
+test-analytics-data/
+
+# Local business data
+local-business-data/
+dev-business-data/
+test-business-data/
+
+# Local enterprise data
+local-enterprise-data/
+dev-enterprise-data/
+test-enterprise-data/
+
+# Local compliance data
+local-compliance-data/
+dev-compliance-data/
+test-compliance-data/
+
+# Local governance data
+local-governance-data/
+dev-governance-data/
+test-governance-data/
+
+# Local audit data
+local-audit-data/
+dev-audit-data/
+test-audit-data/
+
+# Local security data
+local-security-data/
+dev-security-data/
+test-security-data/
+
+# Local monitoring data
+local-monitoring-data/
+dev-monitoring-data/
+test-monitoring-data/
+
+# Local observability data
+local-observability-data/
+dev-observability-data/
+test-observability-data/
+
+# Local metrics data
+local-metrics-data/
+dev-metrics-data/
+test-metrics-data/
+
+# Local traces data
+local-traces-data/
+dev-traces-data/
+test-traces-data/
+
+# Local logs data
+local-logs-data/
+dev-logs-data/
+test-logs-data/
+
+# Local agent logs
+local-agent-logs/
+dev-agent-logs/
+test-agent-logs/
+
+# Local MCP logs
+local-mcp-logs/
+dev-mcp-logs/
+test-mcp-logs/
+
+# Local orchestrator logs
+local-orchestrator-logs/
+dev-orchestrator-logs/
+test-orchestrator-logs/
+
+# Local reporting logs
+local-reporting-logs/
+dev-reporting-logs/
+test-reporting-logs/
+
+# Local search logs
+local-search-logs/
+dev-search-logs/
+test-search-logs/
+
+# Local analytics logs
+local-analytics-logs/
+dev-analytics-logs/
+test-analytics-logs/
+
+# Local business logs
+local-business-logs/
+dev-business-logs/
+test-business-logs/
+
+# Local enterprise logs
+local-enterprise-logs/
+dev-enterprise-logs/
+test-enterprise-logs/
+
+# Local compliance logs
+local-compliance-logs/
+dev-compliance-logs/
+test-compliance-logs/
+
+# Local governance logs
+local-governance-logs/
+dev-governance-logs/
+test-governance-logs/
+
+# Local audit logs
+local-audit-logs/
+dev-audit-logs/
+test-audit-logs/
+
+# Local security logs
+local-security-logs/
+dev-security-logs/
+test-security-logs/
+
+# Local monitoring logs
+local-monitoring-logs/
+dev-monitoring-logs/
+test-monitoring-logs/
+
+# Local observability logs
+local-observability-logs/
+dev-observability-logs/
+test-observability-logs/
+
+# Local metrics logs
+local-metrics-logs/
+dev-metrics-logs/
+test-metrics-logs/
+
+# Local traces logs
+local-traces-logs/
+dev-traces-logs/
+test-traces-logs/
+
+# Local logs logs
+local-logs-logs/
+dev-logs-logs/
+test-logs-logs/
