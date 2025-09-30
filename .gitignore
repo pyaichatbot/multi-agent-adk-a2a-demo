@@ -481,3 +481,9 @@ test-traces-logs/
 local-logs-logs/
 dev-logs-logs/
 test-logs-logs/
+OBSERVABILITY_TODO.md
+src/infrastructure/OBSERVABILITY_SETUP.md
+main_code/agui_protocol_integration.py
+.gitignore
+main_code/agui_protocol.py
+main_code/agui_protocol_integration_COMPLETED.py

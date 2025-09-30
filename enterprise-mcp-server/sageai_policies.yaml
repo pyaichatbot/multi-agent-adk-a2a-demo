@@ -1,0 +1,85 @@
+sageai_governance:
+  enabled: true
+  policy_engine: "yaml_based"
+  default_policy: "deny"
+  
+  agents:
+    default_policy: "deny"
+    allow_list: ["agent_001", "agent_003", "agent_005"]  # Whitelist specific agents
+    deny_list: ["agent_002", "agent_004"]                # Blacklist specific agents
+    restrictions:
+      agent_001:
+        max_execution_time: 300  # 5 minutes
+        allowed_parameters: ["format", "output_type"]
+        forbidden_parameters: ["admin_access", "system_config"]
+        rate_limit: 5  # per hour
+      agent_003:
+        max_execution_time: 600  # 10 minutes
+        allowed_parameters: ["query", "limit", "format"]
+        rate_limit: 10  # per hour
+      agent_005:
+        max_execution_time: 180  # 3 minutes
+        allowed_parameters: ["*"]  # All parameters allowed
+        rate_limit: 20  # per hour
+        
+  tools:
+    default_policy: "deny"
+    allow_list: ["tool_analytics", "tool_database", "tool_reporting"]
+    deny_list: ["tool_admin", "tool_system"]
+    restrictions:
+      tool_analytics:
+        max_execution_time: 180  # 3 minutes
+        allowed_parameters: ["data_source", "analysis_type"]
+        forbidden_parameters: ["admin_access"]
+        rate_limit: 10  # per hour
+      tool_database:
+        max_execution_time: 300  # 5 minutes
+        allowed_parameters: ["query", "limit", "format"]
+        rate_limit: 15  # per hour
+      tool_reporting:
+        max_execution_time: 600  # 10 minutes
+        allowed_parameters: ["report_type", "format", "date_range"]
+        rate_limit: 5  # per hour
+        
+  users:
+    role_based_access:
+      admin:
+        agents: ["*"]  # All agents
+        tools: ["*"]    # All tools
+      agent_user:
+        agents: ["agent_001", "agent_003"]
+        tools: []
+      tool_user:
+        agents: []
+        tools: ["tool_analytics", "tool_database"]
+      analytics_user:
+        agents: ["agent_001"]
+        tools: ["tool_analytics", "tool_reporting"]
+      reporting_user:
+        agents: []
+        tools: ["tool_reporting"]
+        
+  rate_limits:
+    global:
+      requests_per_hour: 1000
+      requests_per_minute: 100
+    per_user:
+      requests_per_hour: 100
+      requests_per_minute: 10
+    per_agent:
+      requests_per_hour: 50
+      requests_per_minute: 5
+    per_tool:
+      requests_per_hour: 50
+      requests_per_minute: 5
+      
+  execution_limits:
+    max_execution_time: 300  # 5 minutes
+    max_memory_usage: "1GB"
+    max_cpu_usage: "80%"
+    
+  compliance:
+    audit_logging: true
+    violation_alerts: true
+    metrics_collection: true
+    real_time_monitoring: true

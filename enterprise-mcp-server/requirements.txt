@@ -1,0 +1,32 @@
+# Enterprise MCP Server Dependencies - Clean & Simple
+fastmcp>=0.1.0
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+
+# Authentication & Security
+python-multipart>=0.0.6
+
+# Simple Observability (Optional)
+# Only include if ENABLE_TELEMETRY=true
+# opentelemetry-api>=1.21.0
+# opentelemetry-sdk>=1.21.0
+# opentelemetry-instrumentation-fastapi>=0.42b0
+# opentelemetry-exporter-jaeger>=1.21.0
+
+# Core Services
+redis>=5.0.1
+httpx>=0.25.0
+
+# SSE Transport for Kubernetes
+sse-starlette>=1.6.1
+
+# Utilities
+python-dotenv>=1.0.0
+
+# Development & Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+black>=23.11.0
+isort>=5.12.0
