@@ -25,8 +25,8 @@ graph TB
     %% LiteLLM Integration Layer
     LiteLLM --> Orchestrator
     LiteLLM --> DataAgent[🔍 Data Search Agent<br/>Port 8002<br/>DataSearchAgent]
-    LiteLLM --> ReportAgent[📊 Reporting Agent<br/>Port 8003<br/>ReportingAgent]
-    LiteLLM --> ExampleAgent[⚙️ Example Agent<br/>Port 8004<br/>CustomAnalyticsAgent]
+    LiteLLM --> ReportAgent[📊 Reporting Agent<br/>Port 8004<br/>ReportingAgent]
+    LiteLLM --> ExampleAgent[⚙️ Example Agent<br/>Port 8005<br/>CustomAnalyticsAgent]
     
     %% Agent Communication
     Orchestrator -->|A2A Protocol| DataAgent
@@ -34,7 +34,7 @@ graph TB
     Orchestrator -->|A2A Protocol| ExampleAgent
     
     %% MCP Tool Server
-    DataAgent -->|MCP Tools| MCPServer[🛠️ MCP Tool Server<br/>Port 8000<br/>EnterpriseToolServer]
+    DataAgent -->|MCP Tools| MCPServer[🛠️ MCP Tool Server<br/>Port 8003<br/>EnterpriseMCPServer]
     ReportAgent -->|MCP Tools| MCPServer
     ExampleAgent -->|MCP Tools| MCPServer
     
@@ -145,7 +145,7 @@ graph TB
 - **MCP Tools**: `query_database`, `search_documents`
 - **Endpoints**: `/search`, `/health`
 
-### 📊 Reporting Agent (Port 8003)
+### 📊 Reporting Agent (Port 8004)
 **Role**: Business reporting and analytics
 - **Class**: `ReportingAgent(Agent)`
 - **Responsibilities**:
@@ -157,29 +157,36 @@ graph TB
 - **MCP Tools**: `run_analytics`, `query_database`, `search_documents`
 - **Endpoints**: `/report`, `/health`
 
-### ⚙️ Example Agent (Port 8004)
-**Role**: Custom analytics and trend forecasting
-- **Class**: `MyCustomAgent(SelfRegisteringAgent, Agent)`
+### ⚙️ Example Agent (Port 8005)
+**Role**: Custom analytics and trend forecasting with MCP integration
+- **Class**: `MyCustomAgent(SelfRegisteringAgent, LlmAgent)`
+- **MCP Integration**: Proper MCP client following ADK documentation
 - **Responsibilities**:
   - Custom analytics processing
   - Trend forecasting
   - Business intelligence
+  - MCP tool integration (enterprise shared tools)
 - **LiteLLM Integration**: Uses Azure OpenAI for analytics insights
 - **Auto-registration**: Dynamic service discovery
+- **MCP Tools**: Connects to enterprise MCP server for shared tools
 - **Endpoints**: `/analytics`, `/health`
 
-### 🛠️ MCP Tool Server (Port 8000)
-**Role**: Centralized tool registry and execution
-- **Class**: `EnterpriseToolServer(MCPToolServer)`
+### 🛠️ MCP Tool Server (Port 8003)
+**Role**: Centralized tool registry and execution via MCP protocol
+- **Class**: `EnterpriseMCPServer(MCPToolServer)`
+- **Implementation**: Standard MCP protocol following ADK documentation
 - **Responsibilities**:
-  - Tool registration and management
-  - Tool execution with authentication
-  - Enterprise data access
+  - MCP protocol compliance with ADK patterns
+  - Tool registration and management via YAML configuration
+  - Tool execution with authentication and observability
+  - Enterprise data access with proper tracing
+- **Configuration**: `config/mcp_config.yaml` for tool definitions
+- **Observability**: Full OpenTelemetry integration
 - **Tools Available**:
   - `DatabaseQueryTool`: SQL query execution
   - `DocumentSearchTool`: Document search and retrieval
   - `AnalyticsTool`: Business analytics and insights
-- **Endpoints**: `/tools`, `/execute`, `/health`
+- **Endpoints**: `/mcp` (MCP protocol endpoint)
 
 ## AG-UI Protocol Architecture
 
@@ -379,11 +386,11 @@ AGUI_WEBSOCKET_HEARTBEAT: 30  # seconds
 - **Volume Mounts**: Configuration and data persistence
 
 ### Port Allocation
-- **MCP Server**: Port 8000
+- **MCP Server**: Port 8003
 - **Orchestrator**: Port 8001 (with AG-UI Protocol)
 - **Data Search**: Port 8002
-- **Reporting**: Port 8003
-- **Example Agent**: Port 8004
+- **Reporting**: Port 8004
+- **Example Agent**: Port 8005
 - **Redis**: Port 6379 (Session Management & Agent Registry)
 
 ## Monitoring & Observability

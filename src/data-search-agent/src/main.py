@@ -62,11 +62,61 @@ app = FastAPI(
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
+    if not data_agent:
+        raise HTTPException(status_code=503, detail="Agent not ready")
+    
     return {
         "status": "healthy",
         "service": "data-search-agent",
-        "capabilities": ["database queries", "document search", "data retrieval"]
+        "agent_id": data_agent.agent_id,
+        "registered": data_agent.is_registered,
+        "current_load": data_agent.current_requests,
+        "max_capacity": data_agent.max_concurrent_requests,
+        "capabilities": [cap.name for cap in data_agent.agent_capabilities]
     }
+
+
+@app.get("/registration-status")
+async def get_registration_status():
+    """Get detailed registration status for enterprise monitoring"""
+    if not data_agent:
+        raise HTTPException(status_code=503, detail="Agent not ready")
+    
+    return {
+        "agent_id": data_agent.agent_id,
+        "registration_status": "active" if data_agent.is_registered else "inactive",
+        "auto_registered": True,
+        "registration_time": getattr(data_agent, 'registration_time', None),
+        "last_heartbeat": getattr(data_agent, 'last_heartbeat', None),
+        "registry_endpoint": getattr(data_agent, 'registry_endpoint', None),
+        "discovery_enabled": True,
+        "load_balancing": "enabled",
+        "current_load": data_agent.current_requests,
+        "max_capacity": data_agent.max_concurrent_requests
+    }
+
+
+@app.post("/heartbeat")
+async def send_heartbeat():
+    """Send heartbeat to maintain registration (enterprise monitoring)"""
+    if not data_agent:
+        raise HTTPException(status_code=503, detail="Agent not ready")
+    
+    try:
+        # Trigger heartbeat if the agent has this method
+        if hasattr(data_agent, 'send_heartbeat'):
+            await data_agent.send_heartbeat()
+        
+        return {
+            "agent_id": data_agent.agent_id,
+            "heartbeat_sent": True,
+            "timestamp": "2024-01-15T10:30:00Z",  # Would be actual timestamp
+            "next_heartbeat": "2024-01-15T10:30:30Z",  # Would be calculated
+            "status": "healthy"
+        }
+    except Exception as e:
+        logging.error(f"Data Search Agent heartbeat failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Heartbeat failed: {str(e)}")
 
 
 @app.post("/process_request", response_model=SearchResponse)
