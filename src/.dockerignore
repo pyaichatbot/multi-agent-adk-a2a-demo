@@ -1,4 +1,25 @@
-# Root directory gitignore for enterprise multi-agent system
+# Root directory dockerignore for enterprise multi-agent system
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+docs/
+documentation/
+
+# Development files
+.env
+.env.*
+*.env
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
 # Python
 __pycache__/
@@ -82,47 +103,12 @@ temp/
 .idea/
 *.swp
 *.swo
-*~
-
-# Development files
-.env
-.env.*
-*.env
 
 # Docker
-docker-compose.override.yml
-.docker/
+Dockerfile*
+docker-compose*.yml
+.dockerignore
 
-# Kubernetes
-*.kubeconfig
-kubeconfig
-
-# Terraform
-*.tfstate
-*.tfstate.*
-.terraform/
-.terraform.lock.hcl
-terraform.tfvars
-terraform.tfvars.json
-
-# Ansible
-*.retry
-.ansible/
-
-# Cloud provider credentials
-.gcloud/
-.aws/
-.azure/
-
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-
-# Redis dumps
-dump.rdb
-
-# Enterprise Multi-Agent System specific
 # Configuration files with secrets
 **/config/secrets.yaml
 **/config/production.yaml
@@ -132,6 +118,7 @@ dump.rdb
 **/config/*.crt
 **/config/*.secret
 
+# Enterprise Multi-Agent System specific
 # Local development data
 local/
 dev/
@@ -150,11 +137,7 @@ test-output/
 
 # Monitoring and observability data
 monitoring/
-observability-data/
-observability-cache/
-observability-logs/
-observability-metrics/
-observability-traces/
+observability/
 metrics/
 traces/
 agent-registry/

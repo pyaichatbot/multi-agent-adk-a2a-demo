@@ -1,6 +1,42 @@
 version: '3.8'
 
 services:
+  # OpenTelemetry Collector for observability
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "8889:8889"   # Prometheus exporter
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:13133/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Jaeger for distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686" # Jaeger UI
+      - "14250:14250" # Jaeger gRPC
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+
+  # Redis for session management and agent registry
+  redis:
+    image: "redis:7-alpine"
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   mcp-server:
     build:
       context: ../
@@ -14,8 +50,13 @@ services:
       - AZURE_API_KEY=${AZURE_API_KEY}
       - AZURE_API_BASE=${AZURE_API_BASE}
       - AZURE_API_VERSION=${AZURE_API_VERSION}
+      # OpenTelemetry Configuration
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_SERVICE_NAME=mcp-server
     volumes:
       - ./mcp-server/config:/app/config
+    depends_on:
+      - otel-collector
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -36,8 +77,15 @@ services:
       - AZURE_API_BASE=${AZURE_API_BASE}
       - AZURE_API_VERSION=${AZURE_API_VERSION}
       - ORCHESTRATOR_AZURE_MODEL=${ORCHESTRATOR_AZURE_MODEL:-gpt-4o}
+      # AG-UI Protocol Configuration
+      - REDIS_URL=redis://redis:6379
+      # OpenTelemetry Configuration
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_SERVICE_NAME=orchestrator-agent
     depends_on:
       - mcp-server
+      - redis
+      - otel-collector
     volumes:
       - ./orchestrator-agent/config:/app/config
     healthcheck:
@@ -60,8 +108,12 @@ services:
       - AZURE_API_BASE=${AZURE_API_BASE}
       - AZURE_API_VERSION=${AZURE_API_VERSION}
       - DATA_SEARCH_AZURE_MODEL=${DATA_SEARCH_AZURE_MODEL:-gpt-4o}
+      # OpenTelemetry Configuration
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_SERVICE_NAME=data-search-agent
     depends_on:
       - mcp-server
+      - otel-collector
     volumes:
       - ./data-search-agent/config:/app/config
     healthcheck:
@@ -84,8 +136,12 @@ services:
       - AZURE_API_BASE=${AZURE_API_BASE}
       - AZURE_API_VERSION=${AZURE_API_VERSION}
       - REPORTING_AZURE_MODEL=${REPORTING_AZURE_MODEL:-gpt-4o}
+      # OpenTelemetry Configuration
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_SERVICE_NAME=reporting-agent
     depends_on:
       - mcp-server
+      - otel-collector
     volumes:
       - ./reporting-agent/config:/app/config
     healthcheck:
@@ -108,12 +164,12 @@ services:
       - AZURE_API_BASE=${AZURE_API_BASE}
       - AZURE_API_VERSION=${AZURE_API_VERSION}
       - EXAMPLE_AGENT_AZURE_MODEL=${EXAMPLE_AGENT_AZURE_MODEL:-gpt-4o}
-      # Registry Configuration
-      - REGISTRY_URL=${REGISTRY_URL:-redis://redis:6379}
-      - AUTO_REGISTER=${AUTO_REGISTER:-true}
+      # OpenTelemetry Configuration
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_SERVICE_NAME=example-agent
     depends_on:
       - mcp-server
-      - redis
+      - otel-collector
     volumes:
       - ./example-agent/config:/app/config
     healthcheck:
@@ -121,18 +177,3 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-volumes:
-  redis_data:

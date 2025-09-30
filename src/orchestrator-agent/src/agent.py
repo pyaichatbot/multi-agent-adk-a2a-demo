@@ -4,6 +4,7 @@ Dynamically routes requests to specialized agents based on capabilities
 """
 
 import json
+import os
 import uuid
 from datetime import datetime
 from typing import Any, Dict, Optional
@@ -14,7 +15,7 @@ from google.adk.agents import LlmAgent, SequentialAgent, ParallelAgent, LoopAgen
 from a2a.client import A2AClient
 # Optional imports - handle missing dependencies gracefully
 try:
-    from adk_shared.observability import get_tracer, trace_agent_call
+    from adk_shared.observability import get_tracer, trace_agent_call_simple as trace_agent_call
     OBSERVABILITY_AVAILABLE = True
 except ImportError:
     print("Warning: Observability module not available, using mock implementations")
@@ -49,13 +50,13 @@ class EnterpriseOrchestrator(LlmAgent):
     """Enterprise orchestrator with dynamic routing using service discovery"""
     
     def __init__(self, config_path: str = "config/root_agent.yaml", policy_path: str = "config/policy.yaml", 
-                 registry_url: str = "redis://localhost:6379"):
+                 registry_url: str = None):
         # Load configurations
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
         
         with open(policy_path, 'r') as f:
-            self.policy = yaml.safe_load(f)
+            self._policy = yaml.safe_load(f)
         
         # Create LiteLLM-compatible configuration
         llm_config = create_agent_llm_config('orchestrator')
@@ -70,28 +71,31 @@ class EnterpriseOrchestrator(LlmAgent):
         )
         
         # Initialize service discovery
+        # Use environment variable for Redis URL if not provided
+        if registry_url is None:
+            registry_url = os.getenv("REDIS_URL", "redis://localhost:6379")
         if REGISTRY_AVAILABLE:
-            self.registry = RedisAgentRegistry(registry_url)
-            self.agents = {}  # Will be populated dynamically
+            self._registry = RedisAgentRegistry(registry_url)
+            self._agents = {}  # Will be populated dynamically
         else:
             # Fallback to hardcoded configuration
-            self.agents = {}
+            self._agents = {}
             for agent_config in config.get('agents', []):
                 client = A2AClient(
                     agent_url=agent_config['url'],
                     agent_name=agent_config['name'],
                     capabilities=agent_config['capabilities']
                 )
-                self.agents[agent_config['name']] = client
+                self._agents[agent_config['name']] = client
         
         # Initialize LiteLLM wrapper for enhanced functionality
-        self.litellm_wrapper = get_litellm_wrapper('orchestrator')
-        self.tracer = get_tracer("orchestrator-agent")
+        self._litellm_wrapper = get_litellm_wrapper('orchestrator')
+        self._tracer = get_tracer("orchestrator-agent")
         
         # Orchestration patterns
-        self.sequential_agent = None
-        self.parallel_agent = None
-        self.loop_agent = None
+        self._sequential_agent = None
+        self._parallel_agent = None
+        self._loop_agent = None
     
     async def start_service_discovery(self):
         """Start service discovery and populate agent pool"""
@@ -100,7 +104,7 @@ class EnterpriseOrchestrator(LlmAgent):
         
         try:
             # Discover available agents
-            available_agents = await self.registry.list_agents(status=AgentStatus.HEALTHY)
+            available_agents = await self._registry.list_agents(status=AgentStatus.HEALTHY)
             
             # Create A2A clients for discovered agents
             for agent_metadata in available_agents:
@@ -109,9 +113,9 @@ class EnterpriseOrchestrator(LlmAgent):
                     agent_name=agent_metadata.name,
                     capabilities=[cap.name for cap in agent_metadata.capabilities]
                 )
-                self.agents[agent_metadata.name] = client
+                self._agents[agent_metadata.name] = client
                 
-            logging.info(f"Discovered {len(self.agents)} agents via service discovery")
+            logging.info(f"Discovered {len(self._agents)} agents via service discovery")
             
         except Exception as e:
             logging.error(f"Service discovery failed: {e}")
@@ -120,7 +124,7 @@ class EnterpriseOrchestrator(LlmAgent):
     async def process_request(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Process request using ADK LLM-driven delegation with user overrides"""
         # Ensure agents are discovered
-        if REGISTRY_AVAILABLE and not self.agents:
+        if REGISTRY_AVAILABLE and not self._agents:
             await self.start_service_discovery()
         
         # Check for user overrides in context
@@ -161,7 +165,7 @@ class EnterpriseOrchestrator(LlmAgent):
                 
                 # Execute request with selected agent
                 with trace_agent_call("orchestrator", selected_agent, transaction_id):
-                    agent_client = self.agents[selected_agent]
+                    agent_client = self._agents[selected_agent]
                     response = await agent_client.process_request(query, context)
                 
                 return {
@@ -183,7 +187,7 @@ class EnterpriseOrchestrator(LlmAgent):
         """Use LLM to select the most appropriate agent"""
         capabilities_summary = "\n".join([
             f"- {name}: {client.capabilities}"
-            for name, client in self.agents.items()
+            for name, client in self._agents.items()
         ])
         
         selection_prompt = f"""
@@ -216,14 +220,14 @@ class EnterpriseOrchestrator(LlmAgent):
             logging.error(f"Failed to parse agent selection response: {e}")
             # Fallback to first available agent
             return {
-                "agent": list(self.agents.keys())[0],
+                "agent": list(self._agents.keys())[0],
                 "reasoning": "Fallback selection due to parsing error"
             }
         except Exception as e:
             logging.error(f"Agent selection failed: {e}")
             # Fallback to first available agent
             return {
-                "agent": list(self.agents.keys())[0],
+                "agent": list(self._agents.keys())[0],
                 "reasoning": f"Fallback selection due to error: {str(e)}"
             }
     
@@ -331,10 +335,10 @@ class EnterpriseOrchestrator(LlmAgent):
         
         results = []
         for agent_name in agent_sequence:
-            if agent_name not in self.agents:
+            if agent_name not in self._agents:
                 raise ValueError(f"Agent '{agent_name}' not available")
             
-            agent_client = self.agents[agent_name]
+            agent_client = self._agents[agent_name]
             result = await agent_client.process_request(query, context)
             results.append({
                 "agent": agent_name,
@@ -361,10 +365,10 @@ class EnterpriseOrchestrator(LlmAgent):
         import asyncio
         tasks = []
         for agent_name in agents:
-            if agent_name not in self.agents:
+            if agent_name not in self._agents:
                 raise ValueError(f"Agent '{agent_name}' not available")
             
-            agent_client = self.agents[agent_name]
+            agent_client = self._agents[agent_name]
             task = agent_client.process_request(query, context)
             tasks.append((agent_name, task))
         
@@ -413,10 +417,10 @@ class EnterpriseOrchestrator(LlmAgent):
             # Execute agents in sequence for this iteration
             iteration_results = []
             for agent_name in agents:
-                if agent_name not in self.agents:
+                if agent_name not in self._agents:
                     raise ValueError(f"Agent '{agent_name}' not available")
                 
-                agent_client = self.agents[agent_name]
+                agent_client = self._agents[agent_name]
                 result = await agent_client.process_request(query, context)
                 iteration_results.append({
                     "agent": agent_name,
@@ -454,10 +458,10 @@ class EnterpriseOrchestrator(LlmAgent):
             raise ValueError("Simple execution requires exactly one agent")
         
         agent_name = agents[0]
-        if agent_name not in self.agents:
+        if agent_name not in self._agents:
             raise ValueError(f"Agent '{agent_name}' not available")
         
-        agent_client = self.agents[agent_name]
+        agent_client = self._agents[agent_name]
         result = await agent_client.process_request(query, context)
         
         return {
@@ -473,7 +477,7 @@ class EnterpriseOrchestrator(LlmAgent):
         if not self.sequential_agent:
             # Create SequentialAgent with discovered agents
             sub_agents = []
-            for name, client in self.agents.items():
+            for name, client in self._agents.items():
                 # Create LlmAgent for each discovered agent
                 sub_agent = LlmAgent(
                     name=name,
@@ -503,7 +507,7 @@ class EnterpriseOrchestrator(LlmAgent):
         if not self.parallel_agent:
             # Create ParallelAgent with discovered agents
             sub_agents = []
-            for name, client in self.agents.items():
+            for name, client in self._agents.items():
                 sub_agent = LlmAgent(
                     name=name,
                     description=f"Agent for {name}",
@@ -532,7 +536,7 @@ class EnterpriseOrchestrator(LlmAgent):
         if not self.loop_agent:
             # Create LoopAgent with discovered agents
             sub_agents = []
-            for name, client in self.agents.items():
+            for name, client in self._agents.items():
                 sub_agent = LlmAgent(
                     name=name,
                     description=f"Agent for {name}",

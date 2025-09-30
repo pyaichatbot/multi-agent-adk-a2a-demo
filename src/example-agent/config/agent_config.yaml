@@ -32,6 +32,18 @@ telemetry:
   metrics: true
   log_level: "INFO"
 
+# MCP Server Configuration (Enterprise Tools)
+# Following ADK documentation: https://google.github.io/adk-docs/tools/mcp-tools/
+mcp_server:
+  url: "http://enterprise-tools-mcp-server:8000/mcp"
+  headers:
+    Authorization: "Bearer ${MCP_AUTH_TOKEN}"
+  # Tool filtering for security and performance
+  tool_filter:
+    - "query_database"
+    - "search_documents" 
+    - "run_analytics"
+
 # Service Configuration
 service:
   host: "0.0.0.0"

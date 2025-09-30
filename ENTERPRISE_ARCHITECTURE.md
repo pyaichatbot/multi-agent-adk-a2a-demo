@@ -2,18 +2,25 @@
 
 ## Overview
 
-This document presents the comprehensive enterprise architecture of the multi-agent system with LiteLLM Azure OpenAI integration, showing all services, their relationships, and communication patterns.
+This document presents the comprehensive enterprise architecture of the multi-agent system with LiteLLM Azure OpenAI integration and AG-UI protocol support, showing all services, their relationships, and communication patterns including frontend integration capabilities.
 
 ## Architecture Diagram
 
 ```mermaid
 graph TB
+    %% Frontend & User Interface
+    Frontend[🖥️ Frontend Application<br/>React/Vue/Angular] --> AGUI[🔌 AG-UI Protocol<br/>WebSocket/SSE/HTTP]
+    User[👤 User Request] --> Frontend
+    
+    %% AG-UI Protocol Layer
+    AGUI --> Orchestrator[🎯 Orchestrator Agent<br/>Port 8001<br/>EnterpriseOrchestrator<br/>+ AG-UI Protocol Server]
+    
     %% External Systems
-    User[👤 User Request] --> Gateway[🌐 API Gateway]
     AzureOpenAI[☁️ Azure OpenAI<br/>GPT-4o Models] --> LiteLLM[🔧 LiteLLM Integration]
     
-    %% Core Orchestration Layer
-    Gateway --> Orchestrator[🎯 Orchestrator Agent<br/>Port 8001<br/>EnterpriseOrchestrator]
+    %% Redis Integration
+    Redis[(🔴 Redis<br/>Session Management<br/>Agent Registry)] --> Orchestrator
+    Orchestrator --> Redis
     
     %% LiteLLM Integration Layer
     LiteLLM --> Orchestrator
@@ -39,9 +46,10 @@ graph TB
     %% Shared Libraries
     subgraph SharedLibraries[📚 ADK-Shared Libraries]
         AgentRegistry[🏪 Agent Registry<br/>Dynamic Discovery]
-        Observability[📊 Observability<br/>OpenTelemetry Tracing]
+        Observability[📊 Observability<br/>Simple Logging & Tracing]
         Security[🔐 Security<br/>JWT Authentication]
         LiteLLMIntegration[🤖 LiteLLM Integration<br/>Azure OpenAI Wrapper]
+        AGUIProtocol[🔌 AG-UI Protocol<br/>Session Management<br/>WebSocket Support]
     end
     
     %% Service Dependencies
@@ -49,6 +57,7 @@ graph TB
     Orchestrator -.->|Uses| Observability
     Orchestrator -.->|Uses| Security
     Orchestrator -.->|Uses| LiteLLMIntegration
+    Orchestrator -.->|Uses| AGUIProtocol
     
     DataAgent -.->|Uses| Observability
     DataAgent -.->|Uses| Security
@@ -109,15 +118,21 @@ graph TB
 ## Service Architecture Details
 
 ### 🎯 Orchestrator Agent (Port 8001)
-**Role**: Central coordination and request routing
-- **Class**: `EnterpriseOrchestrator(RouterAgent)`
+**Role**: Central coordination and request routing with AG-UI protocol support
+- **Class**: `EnterpriseOrchestrator(LlmAgent)`
 - **Responsibilities**:
   - Agent selection using LiteLLM-powered reasoning
   - Policy enforcement and governance
   - Request routing via A2A protocol
   - Load balancing and failover
+  - AG-UI protocol server for frontend communication
+  - Session management and WebSocket support
 - **LiteLLM Integration**: Uses Azure OpenAI for intelligent agent selection
-- **Endpoints**: `/process`, `/agents`, `/health`
+- **AG-UI Protocol**: WebSocket, SSE, and HTTP endpoints for frontend integration
+- **Redis Integration**: Session storage and agent registry
+- **Endpoints**: 
+  - **Core**: `/process`, `/agents`, `/health`
+  - **AG-UI**: `/agui/sessions`, `/agui/messages`, `/agui/stream`, `/agui/ws`
 
 ### 🔍 Data Search Agent (Port 8002)
 **Role**: Specialized data retrieval and search operations
@@ -166,6 +181,71 @@ graph TB
   - `AnalyticsTool`: Business analytics and insights
 - **Endpoints**: `/tools`, `/execute`, `/health`
 
+## AG-UI Protocol Architecture
+
+### 🔌 AG-UI Protocol Components
+
+```mermaid
+graph TB
+    subgraph FrontendLayer[🖥️ Frontend Layer]
+        WebApp[🌐 Web Application<br/>React/Vue/Angular]
+        MobileApp[📱 Mobile Application<br/>React Native/Flutter]
+    end
+    
+    subgraph AGUILayer[🔌 AG-UI Protocol Layer]
+        HTTPEndpoints[🌐 HTTP Endpoints<br/>REST API]
+        SSEEndpoints[📡 Server-Sent Events<br/>Real-time Streaming]
+        WebSocketEndpoints[🔌 WebSocket<br/>Bidirectional Communication]
+    end
+    
+    subgraph SessionLayer[💾 Session Management]
+        RedisSessions[🔴 Redis Sessions<br/>Session Storage]
+        MessageQueue[📨 Message Queue<br/>Event Processing]
+    end
+    
+    subgraph OrchestratorLayer[🎯 Orchestrator Integration]
+        AGUIServer[🔌 AGUIProtocolServer<br/>Protocol Handler]
+        MessageHandler[💬 MessageHandler<br/>Request Processing]
+        StreamingHandler[📡 StreamingHandler<br/>Real-time Responses]
+        EventEmitter[📢 EventEmitter<br/>WebSocket Events]
+    end
+    
+    WebApp --> HTTPEndpoints
+    WebApp --> SSEEndpoints
+    WebApp --> WebSocketEndpoints
+    MobileApp --> HTTPEndpoints
+    MobileApp --> WebSocketEndpoints
+    
+    HTTPEndpoints --> AGUIServer
+    SSEEndpoints --> AGUIServer
+    WebSocketEndpoints --> AGUIServer
+    
+    AGUIServer --> MessageHandler
+    AGUIServer --> StreamingHandler
+    AGUIServer --> EventEmitter
+    
+    AGUIServer --> RedisSessions
+    MessageHandler --> MessageQueue
+    StreamingHandler --> MessageQueue
+    EventEmitter --> MessageQueue
+```
+
+### Key AG-UI Protocol Features:
+- **Multi-Transport Support**: HTTP, WebSocket, and Server-Sent Events
+- **Session Management**: Redis-based session storage with TTL
+- **Real-time Communication**: WebSocket for bidirectional communication
+- **Streaming Responses**: Server-Sent Events for real-time updates
+- **Message Queuing**: Asynchronous message processing
+- **Event Emission**: WebSocket-based event broadcasting
+- **Frontend Integration**: Ready-to-use JavaScript/TypeScript clients
+
+### AG-UI Protocol Endpoints:
+- **Session Management**: `/agui/sessions` (POST, GET, DELETE)
+- **Message Handling**: `/agui/messages` (POST, GET)
+- **Streaming**: `/agui/stream` (GET with SSE)
+- **WebSocket**: `/agui/ws` (WebSocket connection)
+- **Health Check**: `/agui/health` (GET)
+
 ## LiteLLM Integration Architecture
 
 ### 🤖 LiteLLM Integration Components
@@ -200,38 +280,50 @@ graph LR
 
 ## Communication Patterns
 
-### 1. User Request Flow
+### 1. Frontend Request Flow (AG-UI Protocol)
 ```
-User → API Gateway → Orchestrator → LiteLLM (Agent Selection) → Specialized Agent → MCP Tools → Data Sources
+Frontend → AG-UI Protocol → Orchestrator → LiteLLM (Agent Selection) → Specialized Agent → MCP Tools → Data Sources
 ```
 
-### 2. Agent-to-Agent Communication (A2A)
+### 2. Real-time Communication Flow
+```
+Frontend WebSocket → AG-UI WebSocket Handler → Orchestrator → Agent Response → Streaming Handler → Frontend
+```
+
+### 3. Session Management Flow
+```
+Frontend → Session Creation → Redis Storage → Session Validation → Orchestrator → Agent Processing
+```
+
+### 4. Agent-to-Agent Communication (A2A)
 - **Protocol**: HTTP-based A2A protocol
 - **Authentication**: JWT tokens
 - **Load Balancing**: Intelligent agent selection
 - **Failover**: Automatic failover mechanisms
 
-### 3. MCP Tool Execution
+### 5. MCP Tool Execution
 - **Authentication**: Token-based authentication
 - **Tool Registration**: Dynamic tool discovery
 - **Execution**: Async tool execution with observability
 
 ## Data Flow Architecture
 
-### Request Processing Flow
-1. **User Request** → API Gateway
-2. **Gateway** → Orchestrator Agent
+### Request Processing Flow (AG-UI Protocol)
+1. **Frontend Request** → AG-UI Protocol (WebSocket/HTTP/SSE)
+2. **AG-UI Protocol** → Orchestrator Agent (with session management)
 3. **Orchestrator** → LiteLLM (Agent Selection)
 4. **Selected Agent** → LiteLLM (Task Processing)
 5. **Agent** → MCP Tool Server (Tool Execution)
 6. **MCP Server** → Data Sources (Database/Documents/Analytics)
-7. **Response** → User (via reverse path)
+7. **Response** → AG-UI Protocol (Streaming/WebSocket)
+8. **AG-UI Protocol** → Frontend (Real-time updates)
 
 ### Observability Flow
-- **Distributed Tracing**: OpenTelemetry across all services
-- **Metrics Collection**: Performance and usage metrics
-- **Structured Logging**: JSON logging with correlation IDs
+- **Simple Logging**: Structured logging with service names and correlation IDs
+- **Basic Tracing**: Simple span context managers for development
 - **Health Monitoring**: Service health checks
+- **Session Tracking**: Redis-based session monitoring
+- **AG-UI Event Logging**: WebSocket and streaming event tracking
 
 ## Security Architecture
 
@@ -261,6 +353,15 @@ ORCHESTRATOR_AZURE_MODEL: "gpt-4o"
 DATA_SEARCH_AZURE_MODEL: "gpt-4o"
 REPORTING_AZURE_MODEL: "gpt-4o"
 EXAMPLE_AGENT_AZURE_MODEL: "gpt-4o"
+
+# Redis Configuration (AG-UI Protocol)
+REDIS_URL: "redis://localhost:6379"
+REDIS_SESSION_TTL: 3600  # 1 hour
+
+# AG-UI Protocol Configuration
+AGUI_SESSION_TIMEOUT: 1800  # 30 minutes
+AGUI_MAX_CONNECTIONS: 1000
+AGUI_WEBSOCKET_HEARTBEAT: 30  # seconds
 ```
 
 ### Service Configuration
@@ -279,18 +380,20 @@ EXAMPLE_AGENT_AZURE_MODEL: "gpt-4o"
 
 ### Port Allocation
 - **MCP Server**: Port 8000
-- **Orchestrator**: Port 8001
+- **Orchestrator**: Port 8001 (with AG-UI Protocol)
 - **Data Search**: Port 8002
 - **Reporting**: Port 8003
 - **Example Agent**: Port 8004
+- **Redis**: Port 6379 (Session Management & Agent Registry)
 
 ## Monitoring & Observability
 
-### Distributed Tracing
-- **OpenTelemetry**: End-to-end request tracing
-- **Cloud Trace**: Google Cloud Platform integration
-- **Correlation IDs**: Request correlation across services
-- **Performance Metrics**: Latency and throughput monitoring
+### Simple Observability
+- **Structured Logging**: Service-specific logging with correlation IDs
+- **Basic Tracing**: Simple span context managers for development
+- **Session Monitoring**: Redis-based session tracking
+- **AG-UI Event Logging**: WebSocket and streaming event monitoring
+- **Performance Metrics**: Basic latency and throughput monitoring
 
 ### Health Monitoring
 - **Health Endpoints**: `/health` for each service
@@ -312,4 +415,4 @@ EXAMPLE_AGENT_AZURE_MODEL: "gpt-4o"
 - **Connection Pooling**: Database connection optimization
 - **Batch Processing**: Efficient bulk operations
 
-This enterprise architecture provides a robust, scalable, and maintainable multi-agent system with comprehensive LiteLLM Azure OpenAI integration, following enterprise best practices for security, observability, and governance.
+This enterprise architecture provides a robust, scalable, and maintainable multi-agent system with comprehensive LiteLLM Azure OpenAI integration and AG-UI protocol support for frontend applications. The system follows enterprise best practices for security, observability, governance, and real-time communication, enabling seamless integration with modern web and mobile applications.

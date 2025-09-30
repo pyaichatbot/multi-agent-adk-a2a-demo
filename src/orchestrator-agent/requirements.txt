@@ -4,16 +4,28 @@ fastapi>=0.104.0
 uvicorn>=0.24.0
 pydantic>=2.5.0
 pyyaml>=6.0.1
+# OpenTelemetry Core
 opentelemetry-api>=1.21.0
 opentelemetry-sdk>=1.21.0
-opentelemetry-exporter-gcp-trace>=1.6.0
+# OpenTelemetry Exporters (Enterprise-ready)
+opentelemetry-exporter-otlp-proto-grpc>=1.21.0
+opentelemetry-exporter-otlp-proto-http>=1.21.0
+# OpenTelemetry Instrumentation
 opentelemetry-instrumentation-fastapi>=0.42b0
 opentelemetry-instrumentation-httpx>=0.58b0
 opentelemetry-instrumentation-logging>=0.58b0
+# OpenTelemetry Propagators
 opentelemetry-propagator-b3>=1.21.0
 opentelemetry-propagator-jaeger>=1.21.0
+# HTTP and Networking
 aiohttp>=3.9.1
 httpx>=0.25.2
+# Security and Authentication
 pyjwt>=2.8.0
+# LLM Integration
 litellm>=1.0.0
+# Environment and Configuration
 python-dotenv>=1.0.0
+# AG-UI Protocol Dependencies
+redis>=5.0.0
+websockets>=12.0

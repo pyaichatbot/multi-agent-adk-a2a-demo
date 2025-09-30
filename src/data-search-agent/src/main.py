@@ -33,17 +33,21 @@ data_agent = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Manage application lifecycle"""
+    """Manage application lifecycle with auto-registration"""
     global data_agent
     
     # Startup
     setup_observability("data-search-agent")
     data_agent = DataSearchAgent()
     
-    logging.info("Data Search Agent started successfully")
+    # Start agent lifecycle with auto-registration
+    await data_agent.start_agent_lifecycle()
+    
+    logging.info("Data Search Agent started successfully with auto-registration")
     yield
     
     # Shutdown
+    await data_agent.stop_agent_lifecycle()
     logging.info("Data Search Agent shutting down")
 
 

@@ -1,0 +1,527 @@
+# Infrastructure specific dockerignore
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+docs/
+documentation/
+
+# Development files
+.env
+.env.*
+*.env
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+nosetests.xml
+
+# Logs
+logs/
+*.log
+**/logs/
+**/*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Configuration files with secrets
+**/config/secrets.yaml
+**/config/production.yaml
+**/config/*.env
+**/config/*.key
+**/config/*.pem
+**/config/*.crt
+**/config/*.secret
+
+# Infrastructure specific
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+terraform.tfvars.json
+*.tfplan
+*.tfplan.*
+
+# Ansible
+*.retry
+.ansible/
+ansible.cfg
+hosts
+inventory/
+
+# Kubernetes
+*.kubeconfig
+kubeconfig
+k8s/
+kubernetes/
+*.yaml.bak
+*.yml.bak
+
+# Cloud provider credentials
+.gcloud/
+.aws/
+.azure/
+credentials/
+*.json
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+
+# Environment files
+.env
+.env.*
+*.env
+environment/
+
+# Deployment artifacts
+deployment/
+artifacts/
+builds/
+deploy-scripts/
+deployment-scripts/
+
+# Infrastructure logs
+infrastructure-logs/
+infra-logs/
+infrastructure-logs-temp/
+
+# Infrastructure data
+infrastructure-data/
+infra-data/
+infrastructure-data-temp/
+
+# Infrastructure cache
+infrastructure-cache/
+infra-cache/
+infrastructure-cache-temp/
+
+# Infrastructure temp
+infrastructure-temp/
+infra-temp/
+infrastructure-temp-temp/
+
+# Infrastructure runtime
+infrastructure-runtime/
+infra-runtime/
+infrastructure-runtime-temp/
+
+# Infrastructure monitoring
+infrastructure-monitoring/
+infra-monitoring/
+infrastructure-monitoring-temp/
+
+# Infrastructure observability
+infrastructure-observability/
+infra-observability/
+infrastructure-observability-temp/
+
+# Infrastructure metrics
+infrastructure-metrics/
+infra-metrics/
+infrastructure-metrics-temp/
+
+# Infrastructure traces
+infrastructure-traces/
+infra-traces/
+infrastructure-traces-temp/
+
+# Infrastructure audit
+infrastructure-audit/
+infra-audit/
+infrastructure-audit-temp/
+
+# Infrastructure compliance
+infrastructure-compliance/
+infra-compliance/
+infrastructure-compliance-temp/
+
+# Infrastructure governance
+infrastructure-governance/
+infra-governance/
+infrastructure-governance-temp/
+
+# Infrastructure security
+infrastructure-security/
+infra-security/
+infrastructure-security-temp/
+
+# Infrastructure performance
+infrastructure-performance/
+infra-performance/
+infrastructure-performance-temp/
+
+# Infrastructure load testing
+infrastructure-load-testing/
+infra-load-testing/
+infrastructure-load-testing-temp/
+
+# Infrastructure stress testing
+infrastructure-stress-testing/
+infra-stress-testing/
+infrastructure-stress-testing-temp/
+
+# Infrastructure integration testing
+infrastructure-integration-testing/
+infra-integration-testing/
+infrastructure-integration-testing-temp/
+
+# Infrastructure unit testing
+infrastructure-unit-testing/
+infra-unit-testing/
+infrastructure-unit-testing-temp/
+
+# Infrastructure end-to-end testing
+infrastructure-e2e-testing/
+infra-e2e-testing/
+infrastructure-e2e-testing-temp/
+
+# Infrastructure smoke testing
+infrastructure-smoke-testing/
+infra-smoke-testing/
+infrastructure-smoke-testing-temp/
+
+# Infrastructure regression testing
+infrastructure-regression-testing/
+infra-regression-testing/
+infrastructure-regression-testing-temp/
+
+# Infrastructure acceptance testing
+infrastructure-acceptance-testing/
+infra-acceptance-testing/
+infrastructure-acceptance-testing-temp/
+
+# Infrastructure performance testing
+infrastructure-performance-testing/
+infra-performance-testing/
+infrastructure-performance-testing-temp/
+
+# Cloud provider specific
+# Google Cloud
+.gcloud/
+gcloud-config/
+google-cloud-config/
+gcp-config/
+google-cloud-platform-config/
+
+# AWS
+.aws/
+aws-config/
+amazon-web-services-config/
+aws-credentials/
+
+# Azure
+.azure/
+azure-config/
+microsoft-azure-config/
+azure-credentials/
+
+# Local development
+local/
+dev/
+development/
+local-infrastructure/
+dev-infrastructure/
+development-infrastructure/
+
+# Staging
+staging/
+staging-infrastructure/
+staging-infra/
+
+# Production
+production/
+production-infrastructure/
+production-infra/
+prod/
+prod-infrastructure/
+prod-infra/
+
+# Testing
+testing/
+test/
+test-infrastructure/
+test-infra/
+testing-infrastructure/
+testing-infra/
+
+# Backup
+backup/
+backups/
+infrastructure-backup/
+infra-backup/
+infrastructure-backups/
+infra-backups/
+
+# Archive
+archive/
+archives/
+infrastructure-archive/
+infra-archive/
+infrastructure-archives/
+infra-archives/
+
+# Old versions
+old/
+old-versions/
+infrastructure-old/
+infra-old/
+infrastructure-old-versions/
+infra-old-versions/
+
+# Deprecated
+deprecated/
+infrastructure-deprecated/
+infra-deprecated/
+infrastructure-deprecated/
+infra-deprecated/
+
+# Temporary
+tmp/
+temp/
+infrastructure-tmp/
+infra-tmp/
+infrastructure-temp/
+infra-temp/
+
+# Cache
+cache/
+infrastructure-cache/
+infra-cache/
+infrastructure-cache/
+infra-cache/
+
+# Logs
+logs/
+infrastructure-logs/
+infra-logs/
+infrastructure-logs/
+infra-logs/
+
+# Data
+data/
+infrastructure-data/
+infra-data/
+infrastructure-data/
+infra-data/
+
+# Runtime
+runtime/
+infrastructure-runtime/
+infra-runtime/
+infrastructure-runtime/
+infra-runtime/
+
+# Monitoring
+monitoring/
+infrastructure-monitoring/
+infra-monitoring/
+infrastructure-monitoring/
+infra-monitoring/
+
+# Observability
+observability/
+infrastructure-observability/
+infra-observability/
+infrastructure-observability/
+infra-observability/
+
+# Metrics
+metrics/
+infrastructure-metrics/
+infra-metrics/
+infrastructure-metrics/
+infra-metrics/
+
+# Traces
+traces/
+infrastructure-traces/
+infra-traces/
+infrastructure-traces/
+infra-traces/
+
+# Audit
+audit/
+infrastructure-audit/
+infra-audit/
+infrastructure-audit/
+infra-audit/
+
+# Compliance
+compliance/
+infrastructure-compliance/
+infra-compliance/
+infrastructure-compliance/
+infra-compliance/
+
+# Governance
+governance/
+infrastructure-governance/
+infra-governance/
+infrastructure-governance/
+infra-governance/
+
+# Security
+security/
+infrastructure-security/
+infra-security/
+infrastructure-security/
+infra-security/
+
+# Performance
+performance/
+infrastructure-performance/
+infra-performance/
+infrastructure-performance/
+infra-performance/
+
+# Load testing
+load-testing/
+infrastructure-load-testing/
+infra-load-testing/
+infrastructure-load-testing/
+infra-load-testing/
+
+# Stress testing
+stress-testing/
+infrastructure-stress-testing/
+infra-stress-testing/
+infrastructure-stress-testing/
+infra-stress-testing/
+
+# Integration testing
+integration-testing/
+infrastructure-integration-testing/
+infra-integration-testing/
+infrastructure-integration-testing/
+infra-integration-testing/
+
+# Unit testing
+unit-testing/
+infrastructure-unit-testing/
+infra-unit-testing/
+infrastructure-unit-testing/
+infra-unit-testing/
+
+# End-to-end testing
+e2e-testing/
+infrastructure-e2e-testing/
+infra-e2e-testing/
+infrastructure-e2e-testing/
+infra-e2e-testing/
+
+# Smoke testing
+smoke-testing/
+infrastructure-smoke-testing/
+infra-smoke-testing/
+infrastructure-smoke-testing/
+infra-smoke-testing/
+
+# Regression testing
+regression-testing/
+infrastructure-regression-testing/
+infra-regression-testing/
+infrastructure-regression-testing/
+infra-regression-testing/
+
+# Acceptance testing
+acceptance-testing/
+infrastructure-acceptance-testing/
+infra-acceptance-testing/
+infrastructure-acceptance-testing/
+infra-acceptance-testing/
+
+# Performance testing
+performance-testing/
+infrastructure-performance-testing/
+infra-performance-testing/
+infrastructure-performance-testing/
+infra-performance-testing/

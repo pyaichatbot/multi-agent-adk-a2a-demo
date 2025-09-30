@@ -57,8 +57,10 @@ async def lifespan(app: FastAPI):
     
     # Shutdown
     if custom_agent:
+        # Cleanup MCP connections following ADK documentation
+        await custom_agent.cleanup()
         await custom_agent.stop_agent_lifecycle()
-    logging.info("Custom Analytics Agent stopped")
+        logging.info("Custom Analytics Agent stopped and MCP connections cleaned up")
 
 
 app = FastAPI(

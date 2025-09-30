@@ -1,0 +1,311 @@
+# Orchestrator Agent specific dockerignore
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+docs/
+documentation/
+
+# Development files
+.env
+.env.*
+*.env
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+nosetests.xml
+
+# Logs
+logs/
+*.log
+**/logs/
+**/*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Configuration files with secrets
+**/config/secrets.yaml
+**/config/production.yaml
+**/config/*.env
+**/config/*.key
+**/config/*.pem
+**/config/*.crt
+**/config/*.secret
+
+# Orchestrator Agent specific
+# Orchestrator cache
+orchestrator-cache/
+routing-cache/
+selection-cache/
+orchestrator-temp/
+
+# Orchestrator data
+orchestrator-data/
+orchestrator-temp/
+orchestrator-runtime/
+
+# Agent routing data
+routing-data/
+agent-routing/
+routing-temp/
+
+# Agent selection data
+selection-data/
+agent-selection/
+selection-temp/
+
+# Agent discovery data
+discovery-data/
+agent-discovery/
+discovery-temp/
+
+# Agent registry data
+registry-data/
+agent-registry/
+registry-temp/
+
+# Agent health data
+health-data/
+agent-health/
+health-temp/
+
+# Agent load data
+load-data/
+agent-load/
+load-temp/
+
+# Agent performance data
+performance-data/
+agent-performance/
+performance-temp/
+
+# Agent metrics data
+metrics-data/
+agent-metrics/
+metrics-temp/
+
+# Agent traces data
+traces-data/
+agent-traces/
+traces-temp/
+
+# Agent logs data
+logs-data/
+agent-logs/
+logs-temp/
+
+# Agent audit data
+audit-data/
+agent-audit/
+audit-temp/
+
+# Agent compliance data
+compliance-data/
+agent-compliance/
+compliance-temp/
+
+# Agent governance data
+governance-data/
+agent-governance/
+governance-temp/
+
+# Agent security data
+security-data/
+agent-security/
+security-temp/
+
+# Agent monitoring data
+monitoring-data/
+agent-monitoring/
+monitoring-temp/
+
+# Agent observability data
+observability-data/
+agent-observability/
+observability-temp/
+
+# Agent policy data
+policy-data/
+agent-policy/
+policy-temp/
+
+# Agent configuration data
+configuration-data/
+agent-configuration/
+configuration-temp/
+
+# Agent deployment data
+deployment-data/
+agent-deployment/
+deployment-temp/
+
+# Agent scaling data
+scaling-data/
+agent-scaling/
+scaling-temp/
+
+# Agent load balancing data
+load-balancing-data/
+agent-load-balancing/
+load-balancing-temp/
+
+# Agent failover data
+failover-data/
+agent-failover/
+failover-temp/
+
+# Agent recovery data
+recovery-data/
+agent-recovery/
+recovery-temp/
+
+# Agent backup data
+backup-data/
+agent-backup/
+backup-temp/
+
+# Agent restore data
+restore-data/
+agent-restore/
+restore-temp/
+
+# Agent migration data
+migration-data/
+agent-migration/
+migration-temp/
+
+# Agent upgrade data
+upgrade-data/
+agent-upgrade/
+upgrade-temp/
+
+# Agent downgrade data
+downgrade-data/
+agent-downgrade/
+downgrade-temp/
+
+# Agent rollback data
+rollback-data/
+agent-rollback/
+rollback-temp/
+
+# Agent testing data
+testing-data/
+agent-testing/
+testing-temp/
+
+# Agent development data
+development-data/
+agent-development/
+development-temp/
+
+# Agent staging data
+staging-data/
+agent-staging/
+staging-temp/
+
+# Agent production data
+production-data/
+agent-production/
+production-temp/
+
+# Agent local data
+local-data/
+agent-local/
+local-temp/
+
+# Agent dev data
+dev-data/
+agent-dev/
+dev-temp/
+
+# Agent test data
+test-data/
+agent-test/
+test-temp/

@@ -1,0 +1,301 @@
+# MCP Server specific dockerignore
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+docs/
+documentation/
+
+# Development files
+.env
+.env.*
+*.env
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+nosetests.xml
+
+# Logs
+logs/
+*.log
+**/logs/
+**/*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Configuration files with secrets
+**/config/secrets.yaml
+**/config/production.yaml
+**/config/*.env
+**/config/*.key
+**/config/*.pem
+**/config/*.crt
+**/config/*.secret
+
+# MCP Server specific
+# Tool cache
+tool-cache/
+mcp-tools-cache/
+tools-temp/
+mcp-cache/
+
+# MCP data
+mcp-data/
+mcp-temp/
+mcp-runtime/
+
+# Tool execution data
+tool-execution-data/
+tool-results/
+tool-cache/
+
+# MCP server logs
+mcp-logs/
+mcp-server-logs/
+server-logs/
+
+# MCP server data
+mcp-server-data/
+server-data/
+mcp-data/
+
+# MCP server cache
+mcp-server-cache/
+server-cache/
+mcp-cache/
+
+# MCP server temp
+mcp-server-temp/
+server-temp/
+mcp-temp/
+
+# MCP server runtime
+mcp-server-runtime/
+server-runtime/
+mcp-runtime/
+
+# MCP server monitoring
+mcp-server-monitoring/
+server-monitoring/
+mcp-monitoring/
+
+# MCP server observability
+mcp-server-observability/
+server-observability/
+mcp-observability/
+
+# MCP server metrics
+mcp-server-metrics/
+server-metrics/
+mcp-metrics/
+
+# MCP server traces
+mcp-server-traces/
+server-traces/
+mcp-traces/
+
+# MCP server logs
+mcp-server-logs/
+server-logs/
+mcp-logs/
+
+# MCP server audit
+mcp-server-audit/
+server-audit/
+mcp-audit/
+
+# MCP server compliance
+mcp-server-compliance/
+server-compliance/
+mcp-compliance/
+
+# MCP server governance
+mcp-server-governance/
+server-governance/
+mcp-governance/
+
+# MCP server security
+mcp-server-security/
+server-security/
+mcp-security/
+
+# MCP server performance
+mcp-server-performance/
+server-performance/
+mcp-performance/
+
+# MCP server load testing
+mcp-server-load-testing/
+server-load-testing/
+mcp-load-testing/
+
+# MCP server stress testing
+mcp-server-stress-testing/
+server-stress-testing/
+mcp-stress-testing/
+
+# MCP server integration testing
+mcp-server-integration-testing/
+server-integration-testing/
+mcp-integration-testing/
+
+# MCP server unit testing
+mcp-server-unit-testing/
+server-unit-testing/
+mcp-unit-testing/
+
+# MCP server end-to-end testing
+mcp-server-e2e-testing/
+server-e2e-testing/
+mcp-e2e-testing/
+
+# MCP server smoke testing
+mcp-server-smoke-testing/
+server-smoke-testing/
+mcp-smoke-testing/
+
+# MCP server regression testing
+mcp-server-regression-testing/
+server-regression-testing/
+mcp-regression-testing/
+
+# MCP server acceptance testing
+mcp-server-acceptance-testing/
+server-acceptance-testing/
+mcp-acceptance-testing/
+
+# MCP server performance testing
+mcp-server-performance-testing/
+server-performance-testing/
+mcp-performance-testing/
+
+# MCP server load testing
+mcp-server-load-testing/
+server-load-testing/
+mcp-load-testing/
+
+# MCP server stress testing
+mcp-server-stress-testing/
+server-stress-testing/
+mcp-stress-testing/
+
+# MCP server integration testing
+mcp-server-integration-testing/
+server-integration-testing/
+mcp-integration-testing/
+
+# MCP server unit testing
+mcp-server-unit-testing/
+server-unit-testing/
+mcp-unit-testing/
+
+# MCP server end-to-end testing
+mcp-server-e2e-testing/
+server-e2e-testing/
+mcp-e2e-testing/
+
+# MCP server smoke testing
+mcp-server-smoke-testing/
+server-smoke-testing/
+mcp-smoke-testing/
+
+# MCP server regression testing
+mcp-server-regression-testing/
+server-regression-testing/
+mcp-regression-testing/
+
+# MCP server acceptance testing
+mcp-server-acceptance-testing/
+server-acceptance-testing/
+mcp-acceptance-testing/
+
+# MCP server performance testing
+mcp-server-performance-testing/
+server-performance-testing/
+mcp-performance-testing/

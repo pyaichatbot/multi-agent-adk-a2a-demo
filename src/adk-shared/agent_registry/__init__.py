@@ -5,6 +5,7 @@ Dynamic Agent Registry for service discovery and orchestration
 import asyncio
 import json
 import logging
+import os
 import time
 import uuid
 from datetime import datetime, timedelta
@@ -424,3 +425,351 @@ class RedisAgentRegistry(AgentRegistryInterface):
                 span.record_exception(e)
                 logging.error(f"Failed to find best agent for {required_capability}: {str(e)}")
                 return None
+
+
+# =============================================================================
+# Agent Self-Registration Mixin
+# =============================================================================
+
+class SelfRegisteringAgent:
+    """Mixin to add self-registration capabilities to agents"""
+    
+    def __init__(self, 
+                 registry_url: str = None,
+                 auto_register: bool = True,
+                 heartbeat_interval: int = 30,
+                 **kwargs):
+        
+        super().__init__(**kwargs)
+        
+        self.registry_url = registry_url or os.getenv("AGENT_REGISTRY_URL", "redis://localhost:6379")
+        self.auto_register = auto_register
+        self.heartbeat_interval = heartbeat_interval
+        
+        # Registration state
+        self.agent_id = f"{self.name}_{os.getenv('HOSTNAME', 'local')}_{int(time.time())}"
+        self.is_registered = False
+        self.registry = None
+        self._heartbeat_task = None
+        self._registration_lock = asyncio.Lock()
+        
+        # Telemetry
+        self.tracer = get_tracer(f"agent-{self.name}")
+        self.meter = get_meter(f"agent-{self.name}")
+        
+        # Metrics for registration
+        self.registration_attempts = self.meter.create_counter(
+            name="agent_registration_attempts_total",
+            description="Total registration attempts"
+        )
+        self.heartbeat_counter = self.meter.create_counter(
+            name="agent_heartbeats_total", 
+            description="Total heartbeat signals sent"
+        )
+        self.request_counter = self.meter.create_counter(
+            name="agent_requests_total",
+            description="Total requests processed by agent"
+        )
+        
+        # Current load gauge
+        self.current_load_gauge = self.meter.create_gauge(
+            name="agent_current_load",
+            description="Current number of active requests"
+        )
+        
+        self.current_requests = 0
+        
+    async def start_agent_lifecycle(self):
+        """Start the complete agent lifecycle with registration"""
+        with self.tracer.start_as_current_span("agent_lifecycle_start") as span:
+            span.set_attribute("agent_id", self.agent_id)
+            span.set_attribute("agent_name", self.name)
+            
+            try:
+                # Initialize registry connection
+                self.registry = RedisAgentRegistry(self.registry_url)
+                await self.registry.connect()
+                
+                # Auto-register if enabled
+                if self.auto_register:
+                    success = await self.register_with_orchestrator()
+                    if success:
+                        span.set_attribute("registration_status", "success")
+                        logging.info(f"Agent {self.name} successfully registered")
+                    else:
+                        span.set_attribute("registration_status", "failed")
+                        logging.warning(f"Agent {self.name} registration failed, continuing anyway")
+                
+                # Start heartbeat
+                self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
+                
+                span.set_attribute("lifecycle_status", "started")
+                logging.info(f"Agent {self.name} lifecycle started")
+                
+            except Exception as e:
+                span.record_exception(e)
+                logging.error(f"Failed to start agent lifecycle: {str(e)}")
+                raise
+    
+    async def stop_agent_lifecycle(self):
+        """Stop agent lifecycle and cleanup"""
+        with self.tracer.start_as_current_span("agent_lifecycle_stop") as span:
+            span.set_attribute("agent_id", self.agent_id)
+            
+            try:
+                # Cancel heartbeat
+                if self._heartbeat_task:
+                    self._heartbeat_task.cancel()
+                    try:
+                        await self._heartbeat_task
+                    except asyncio.CancelledError:
+                        pass
+                
+                # Unregister
+                if self.is_registered and self.registry:
+                    await self.registry.unregister_agent(self.agent_id)
+                    self.is_registered = False
+                
+                # Cleanup registry connection
+                if self.registry:
+                    await self.registry.disconnect()
+                
+                span.set_attribute("lifecycle_status", "stopped")
+                logging.info(f"Agent {self.name} lifecycle stopped")
+                
+            except Exception as e:
+                span.record_exception(e)
+                logging.error(f"Error stopping agent lifecycle: {str(e)}")
+    
+    async def register_with_orchestrator(self) -> bool:
+        """Register this agent with the orchestrator"""
+        async with self._registration_lock:
+            with self.tracer.start_as_current_span("agent_registration") as span:
+                span.set_attribute("agent_id", self.agent_id)
+                span.set_attribute("agent_name", self.name)
+                
+                try:
+                    # Increment registration attempts
+                    self.registration_attempts.add(1, {"agent_name": self.name})
+                    
+                    # Build agent metadata
+                    metadata = self._build_agent_metadata()
+                    span.set_attribute("capabilities_count", len(metadata.capabilities))
+                    
+                    # Register with registry
+                    if not self.registry:
+                        raise Exception("Registry not initialized")
+                    
+                    success = await self.registry.register_agent(metadata)
+                    
+                    if success:
+                        self.is_registered = True
+                        span.set_attribute("registration_result", "success")
+                        
+                        # Record successful registration
+                        registration_success = self.meter.create_counter(
+                            name="agent_registration_success_total",
+                            description="Successful registrations"
+                        )
+                        registration_success.add(1, {"agent_name": self.name})
+                        
+                        logging.info(f"Agent {self.name} registered successfully with ID: {self.agent_id}")
+                        return True
+                    else:
+                        span.set_attribute("registration_result", "failed")
+                        logging.error(f"Failed to register agent {self.name}")
+                        return False
+                        
+                except Exception as e:
+                    span.record_exception(e)
+                    span.set_attribute("registration_result", "error")
+                    
+                    # Record registration error
+                    registration_errors = self.meter.create_counter(
+                        name="agent_registration_errors_total",
+                        description="Registration errors"
+                    )
+                    registration_errors.add(1, {
+                        "agent_name": self.name,
+                        "error_type": type(e).__name__
+                    })
+                    
+                    logging.error(f"Registration error for {self.name}: {str(e)}")
+                    return False
+    
+    def _build_agent_metadata(self) -> AgentMetadata:
+        """Build agent metadata from agent configuration"""
+        
+        # Extract capabilities from agent tools or define manually
+        capabilities = self._extract_capabilities()
+        
+        # Get service information
+        service_url = os.getenv("SERVICE_URL", f"http://localhost:8000")
+        health_url = f"{service_url}/health"
+        
+        return AgentMetadata(
+            agent_id=self.agent_id,
+            name=self.name,
+            version=getattr(self, 'version', '1.0.0'),
+            description=getattr(self, 'description', f"{self.name} agent"),
+            capabilities=capabilities,
+            endpoint_url=service_url,
+            health_check_url=health_url,
+            max_concurrent_requests=getattr(self, 'max_concurrent_requests', 10),
+            current_load=self.current_requests,
+            cpu_cores=float(os.getenv("CPU_CORES", "1.0")),
+            memory_gb=float(os.getenv("MEMORY_GB", "1.0")),
+            service_name=os.getenv("SERVICE_NAME", self.name.lower()),
+            namespace=os.getenv("NAMESPACE", "default"),
+            cluster=os.getenv("CLUSTER", "default"),
+            tags=set(getattr(self, 'tags', [])),
+            priority=getattr(self, 'priority', 1)
+        )
+    
+    def _extract_capabilities(self) -> List[AgentCapability]:
+        """Extract capabilities from agent tools and configuration"""
+        capabilities = []
+        
+        # If agent has tools, extract capabilities from them
+        if hasattr(self, 'tools') and self.tools:
+            for tool in self.tools:
+                if hasattr(tool, 'name') and hasattr(tool, 'description'):
+                    capabilities.append(AgentCapability(
+                        name=tool.name,
+                        description=tool.description,
+                        input_schema=getattr(tool, 'input_schema', {}),
+                        output_schema=getattr(tool, 'output_schema', {}),
+                        complexity_score=getattr(tool, 'complexity_score', 1.0),
+                        estimated_duration=getattr(tool, 'estimated_duration', 1.0)
+                    ))
+        
+        # Add agent-specific capabilities
+        if hasattr(self, 'agent_capabilities'):
+            capabilities.extend(self.agent_capabilities)
+        
+        # Default capability if none found
+        if not capabilities:
+            capabilities.append(AgentCapability(
+                name=f"{self.name.lower()}_processing",
+                description=f"General processing capability for {self.name}",
+                input_schema={"type": "object", "properties": {"query": {"type": "string"}}},
+                output_schema={"type": "object", "properties": {"result": {"type": "string"}}},
+                complexity_score=1.0,
+                estimated_duration=2.0
+            ))
+        
+        return capabilities
+    
+    async def _heartbeat_loop(self):
+        """Send periodic heartbeat to registry"""
+        while True:
+            try:
+                await asyncio.sleep(self.heartbeat_interval)
+                
+                if self.is_registered and self.registry:
+                    with self.tracer.start_as_current_span("agent_heartbeat") as span:
+                        span.set_attribute("agent_id", self.agent_id)
+                        span.set_attribute("current_load", self.current_requests)
+                        
+                        success = await self.registry.update_agent_status(
+                            self.agent_id,
+                            AgentStatus.HEALTHY,
+                            self.current_requests
+                        )
+                        
+                        if success:
+                            self.heartbeat_counter.add(1, {"agent_name": self.name})
+                            self.current_load_gauge.set(self.current_requests, {"agent_name": self.name})
+                        else:
+                            logging.warning(f"Heartbeat failed for {self.name}")
+                            # Try to re-register
+                            await self.register_with_orchestrator()
+                            
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logging.error(f"Heartbeat error for {self.name}: {str(e)}")
+                # Continue heartbeat loop even on error
+    
+    async def process_request_with_telemetry(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Process request with full telemetry integration"""
+        
+        # Increment current load
+        self.current_requests += 1
+        transaction_id = f"req_{self.agent_id}_{int(time.time() * 1000)}"
+        
+        with self.tracer.start_as_current_span("agent_request_processing") as span:
+            span.set_attribute("agent_id", self.agent_id)
+            span.set_attribute("agent_name", self.name)
+            span.set_attribute("transaction_id", transaction_id)
+            span.set_attribute("query", query[:100])  # Truncate for privacy
+            span.set_attribute("current_load", self.current_requests)
+            
+            start_time = time.time()
+            
+            try:
+                # Record request
+                self.request_counter.add(1, {
+                    "agent_name": self.name,
+                    "status": "started"
+                })
+                
+                # Process the actual request
+                result = await self.process_request(query, context)
+                
+                # Add telemetry to result
+                result.update({
+                    "agent_id": self.agent_id,
+                    "transaction_id": transaction_id,
+                    "processing_time_ms": int((time.time() - start_time) * 1000),
+                    "agent_load": self.current_requests
+                })
+                
+                span.set_attribute("processing_time_ms", result["processing_time_ms"])
+                span.set_attribute("success", True)
+                
+                # Record success
+                self.request_counter.add(1, {
+                    "agent_name": self.name,
+                    "status": "success"
+                })
+                
+                # Record processing time
+                processing_time_histogram = self.meter.create_histogram(
+                    name="agent_request_duration_seconds",
+                    description="Request processing duration"
+                )
+                processing_time_histogram.record(
+                    time.time() - start_time,
+                    {"agent_name": self.name, "status": "success"}
+                )
+                
+                return result
+                
+            except Exception as e:
+                span.record_exception(e)
+                span.set_attribute("success", False)
+                span.set_attribute("error_type", type(e).__name__)
+                
+                # Record error
+                self.request_counter.add(1, {
+                    "agent_name": self.name,
+                    "status": "error",
+                    "error_type": type(e).__name__
+                })
+                
+                processing_time_histogram = self.meter.create_histogram(
+                    name="agent_request_duration_seconds",
+                    description="Request processing duration"
+                )
+                processing_time_histogram.record(
+                    time.time() - start_time,
+                    {"agent_name": self.name, "status": "error"}
+                )
+                
+                logging.error(f"Request processing failed for {self.name}: {str(e)}")
+                raise
+                
+            finally:
+                # Decrement current load
+                self.current_requests = max(0, self.current_requests - 1)

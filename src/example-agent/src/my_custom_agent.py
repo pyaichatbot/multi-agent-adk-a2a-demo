@@ -1,34 +1,50 @@
 """
 Example showing how to create a custom agent with auto-registration and telemetry
+
+This example demonstrates TWO tool patterns:
+1. MCP Tools - Enterprise tools shared across all agents (via MCPToolset)
+2. Custom Agent Tools - Agent-specific tools (via FunctionTool)
+
+Use this as a reference to create new agents by:
+- Copying this structure
+- Modifying the custom tools for your specific needs
+- Adding/removing MCP tools as needed
+- Updating agent capabilities and configuration
 """
 
 import asyncio
 import yaml
+import logging
 from typing import Dict, Any, List
 
 from google.adk import Agent
 from google.adk.agents import LlmAgent
-from google.adk.tools import FunctionTool
-from adk_shared.agent_registration import SelfRegisteringAgent, AgentCapability
-from adk_shared.observability import setup_observability
+from google.adk.tools import FunctionTool, MCPToolset
+from google.adk.tools.mcp_tool.mcp_session_manager import SseConnectionParams
+from adk_shared.agent_registry import SelfRegisteringAgent, AgentCapability
+from adk_shared.observability import setup_observability, get_tracer
 from adk_shared.litellm_integration import create_agent_llm_config, get_litellm_wrapper
 
 
+# Custom analytics function for the agent
+async def run_custom_analytics(data_source: str, analysis_type: str, **kwargs) -> Dict[str, Any]:
+    """Execute custom analytics - this is the actual function that will be called"""
+    # Mock implementation
+    return {
+        "analysis_type": analysis_type,
+        "data_source": data_source,
+        "results": {"trend": "positive", "confidence": 0.87},
+        "processing_time_ms": 1500
+    }
+
+
 class CustomAnalyticsTool(FunctionTool):
-    """Custom tool for the agent"""
+    """Custom tool for the agent - demonstrates agent-specific tools"""
     
-    name = "run_custom_analytics"
-    description = "Run custom analytics on business data"
-    
-    async def execute(self, data_source: str, analysis_type: str, **kwargs) -> Dict[str, Any]:
-        """Execute custom analytics"""
-        # Mock implementation
-        return {
-            "analysis_type": analysis_type,
-            "data_source": data_source,
-            "results": {"trend": "positive", "confidence": 0.87},
-            "processing_time_ms": 1500
-        }
+    def __init__(self):
+        super().__init__(
+            func=run_custom_analytics
+        )
 
 
 class MyCustomAgent(SelfRegisteringAgent, LlmAgent):
@@ -40,8 +56,41 @@ class MyCustomAgent(SelfRegisteringAgent, LlmAgent):
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
         
-        # Initialize custom tools
+        # Initialize both MCP tools (enterprise shared) and custom agent tools
+        # 1. MCP Tools - Enterprise tools shared across all agents (MCP Client)
+        # Following ADK documentation: https://google.github.io/adk-docs/tools/mcp-tools/
+        mcp_config = config.get('mcp_server', {})
+        
+        # Validate MCP configuration
+        if not mcp_config.get('url'):
+            logging.warning("MCP server URL not configured, using default")
+            mcp_config['url'] = 'http://localhost:8000/mcp'
+        
+        # Create MCP toolset with proper error handling
+        try:
+            mcp_toolset = MCPToolset(
+                connection_params=SseConnectionParams(
+                    url=mcp_config.get('url'),
+                    headers=mcp_config.get('headers', {})
+                ),
+                tool_filter=mcp_config.get('tool_filter', ['run_analytics', 'query_database', 'search_documents'])
+            )
+            logging.info(f"MCP toolset initialized with {len(mcp_config.get('tool_filter', []))} filtered tools")
+        except Exception as e:
+            logging.error(f"Failed to initialize MCP toolset: {e}")
+            # Fallback to empty toolset if MCP connection fails
+            mcp_toolset = None
+        
+        # 2. Custom Agent Tools - Agent-specific functionality
         custom_tools = [CustomAnalyticsTool()]
+        
+        # Combine both types of tools (handle MCP connection failures gracefully)
+        all_tools = custom_tools
+        if mcp_toolset is not None:
+            all_tools = [mcp_toolset] + custom_tools
+            logging.info("Agent initialized with both MCP and custom tools")
+        else:
+            logging.warning("Agent initialized with custom tools only (MCP connection failed)")
         
         # Define specific capabilities (these will be auto-registered)
         agent_capabilities = [
@@ -96,12 +145,12 @@ class MyCustomAgent(SelfRegisteringAgent, LlmAgent):
         # Create LiteLLM-compatible configuration
         llm_config = create_agent_llm_config('example_agent')
         
-        # Initialize Agent
+        # Initialize Agent with both MCP and custom tools
         Agent.__init__(
             self,
             name="CustomAnalyticsAgent",
             description="Advanced analytics agent with trend forecasting capabilities",
-            tools=custom_tools,
+            tools=all_tools,
             llm_config=llm_config
         )
         
@@ -122,6 +171,20 @@ class MyCustomAgent(SelfRegisteringAgent, LlmAgent):
         
         # Initialize LiteLLM wrapper for enhanced functionality
         self.litellm_wrapper = get_litellm_wrapper('example_agent')
+        self.tracer = get_tracer("custom-analytics-agent")
+        
+        # Store MCP toolset for proper cleanup
+        self.mcp_toolset = mcp_toolset
+    
+    async def cleanup(self):
+        """Cleanup MCP connections following ADK documentation patterns"""
+        if self.mcp_toolset is not None:
+            try:
+                # Close MCP connections properly
+                await self.mcp_toolset.close()
+                logging.info("MCP toolset connections closed successfully")
+            except Exception as e:
+                logging.error(f"Error closing MCP toolset: {e}")
         
     async def process_request(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Process analytics requests with enhanced capabilities"""

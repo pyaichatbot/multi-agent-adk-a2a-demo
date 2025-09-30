@@ -33,17 +33,21 @@ reporting_agent = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Manage application lifecycle"""
+    """Manage application lifecycle with auto-registration"""
     global reporting_agent
     
     # Startup
     setup_observability("reporting-agent")
     reporting_agent = ReportingAgent()
     
-    logging.info("Reporting Agent started successfully")
+    # Start agent lifecycle with auto-registration
+    await reporting_agent.start_agent_lifecycle()
+    
+    logging.info("Reporting Agent started successfully with auto-registration")
     yield
     
     # Shutdown
+    await reporting_agent.stop_agent_lifecycle()
     logging.info("Reporting Agent shutting down")
 
 

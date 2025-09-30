@@ -1,29 +1,37 @@
 """
-Observability utilities using OpenTelemetry
-Provides tracing, metrics, and logging for the entire system
+Enterprise-ready observability module using OpenTelemetry
+Works in Docker without external cloud dependencies
+Provides distributed tracing, metrics, and structured logging
 """
-
+import json
 import logging
 import os
 from contextlib import contextmanager
 from typing import Any, Dict, Optional
 
 from opentelemetry import trace, metrics
-from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
-from opentelemetry.exporter.cloud_monitoring import CloudMonitoringMetricsExporter
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader, ConsoleMetricExporter
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from opentelemetry.propagate import set_global_textmap
+try:
+    from opentelemetry.propagator.b3 import B3MultiFormat
+except ImportError:
+    B3MultiFormat = None
+
+try:
+    from opentelemetry.propagator.jaeger import JaegerPropagator
+except ImportError:
+    JaegerPropagator = None
 
 
 def setup_observability(service_name: str, environment: str = None):
-    """Setup complete observability stack"""
+    """Setup enterprise observability stack"""
     if not environment:
         environment = os.getenv("ENVIRONMENT", "development")
     
@@ -38,47 +46,79 @@ def setup_observability(service_name: str, environment: str = None):
     
     # Auto-instrument common libraries
     setup_auto_instrumentation()
+    
+    logging.info(f"Enterprise observability setup for {service_name} in {environment} mode")
 
 
 def setup_tracing(service_name: str, environment: str):
-    """Setup distributed tracing"""
+    """Setup distributed tracing with proper exporters"""
     # Create tracer provider
     tracer_provider = TracerProvider(
         resource=Resource.create({
             "service.name": service_name,
             "service.version": "1.0.0",
-            "deployment.environment": environment
+            "deployment.environment": environment,
+            "service.instance.id": os.getenv("HOSTNAME", "unknown")
         })
     )
     trace.set_tracer_provider(tracer_provider)
     
     # Setup exporter based on environment
     if environment == "production":
-        # Use Cloud Trace in production
-        exporter = CloudTraceSpanExporter()
+        # In production, try OTLP exporter first (for OpenTelemetry Collector)
+        try:
+            from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+            exporter = OTLPSpanExporter(endpoint=os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317"))
+        except ImportError:
+            # Fallback to console exporter
+            exporter = ConsoleSpanExporter()
     else:
-        # Use console exporter for development
-        from opentelemetry.exporter.console import ConsoleSpanExporter
+        # Development: Use console exporter for immediate visibility
         exporter = ConsoleSpanExporter()
     
     # Add span processor
     span_processor = BatchSpanProcessor(exporter)
     tracer_provider.add_span_processor(span_processor)
+    
+    # Setup propagation (only if B3MultiFormat is available)
+    if B3MultiFormat is not None:
+        set_global_textmap(B3MultiFormat())
+    else:
+        # Use default propagation if B3 is not available
+        try:
+            from opentelemetry.propagator.tracecontext import TraceContextTextMapPropagator
+            from opentelemetry.propagator.baggage import BaggageTextMapPropagator
+            from opentelemetry.propagator.composite import CompositeHTTPPropagator
+            
+            propagator = CompositeHTTPPropagator([
+                TraceContextTextMapPropagator(),
+                BaggageTextMapPropagator()
+            ])
+            set_global_textmap(propagator)
+        except ImportError:
+            # If no propagators are available, skip propagation setup
+            pass
 
 
 def setup_metrics(service_name: str, environment: str):
-    """Setup metrics collection"""
+    """Setup metrics collection with proper exporters"""
     # Setup exporter
     if environment == "production":
-        exporter = CloudMonitoringMetricsExporter()
+        # In production, try OTLP exporter first
+        try:
+            from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
+            exporter = OTLPMetricExporter(endpoint=os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317"))
+        except ImportError:
+            # Fallback to console exporter
+            exporter = ConsoleMetricExporter()
     else:
-        from opentelemetry.exporter.console import ConsoleMetricsExporter
-        exporter = ConsoleMetricsExporter()
+        # Development: Use console exporter
+        exporter = ConsoleMetricExporter()
     
     # Create metric reader
     reader = PeriodicExportingMetricReader(
         exporter=exporter,
-        export_interval_millis=60000  # Export every minute
+        export_interval_millis=30000  # Export every 30 seconds
     )
     
     # Create meter provider
@@ -87,32 +127,60 @@ def setup_metrics(service_name: str, environment: str):
         resource=Resource.create({
             "service.name": service_name,
             "service.version": "1.0.0",
-            "deployment.environment": environment
+            "deployment.environment": environment,
+            "service.instance.id": os.getenv("HOSTNAME", "unknown")
         })
     )
     metrics.set_meter_provider(meter_provider)
 
 
 def setup_logging(service_name: str, environment: str):
-    """Setup structured logging"""
+    """Setup structured logging with correlation IDs"""
     log_level = logging.INFO if environment == "production" else logging.DEBUG
     
-    logging.basicConfig(
-        level=log_level,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
+    # Create structured formatter
+    class StructuredFormatter(logging.Formatter):
+        def format(self, record):
+            log_entry = {
+                "timestamp": self.formatTime(record),
+                "level": record.levelname,
+                "service": service_name,
+                "environment": environment,
+                "message": record.getMessage(),
+                "module": record.module,
+                "function": record.funcName,
+                "line": record.lineno
+            }
+            
+            # Add correlation ID if available
+            if hasattr(record, 'trace_id'):
+                log_entry["trace_id"] = record.trace_id
+            if hasattr(record, 'span_id'):
+                log_entry["span_id"] = record.span_id
+            
+            # Add any extra fields
+            for key, value in record.__dict__.items():
+                if key not in ['name', 'msg', 'args', 'levelname', 'levelno', 'pathname', 
+                              'filename', 'module', 'lineno', 'funcName', 'created', 
+                              'msecs', 'relativeCreated', 'thread', 'threadName', 
+                              'processName', 'process', 'getMessage', 'exc_info', 
+                              'exc_text', 'stack_info']:
+                    log_entry[key] = value
+            
+            return json.dumps(log_entry)
     
-    # Add service name to all log records
-    logger = logging.getLogger()
-    old_factory = logging.getLogRecordFactory()
+    # Configure root logger
+    root_logger = logging.getLogger()
+    root_logger.setLevel(log_level)
     
-    def record_factory(*args, **kwargs):
-        record = old_factory(*args, **kwargs)
-        record.service_name = service_name
-        record.environment = environment
-        return record
+    # Remove existing handlers
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
     
-    logging.setLogRecordFactory(record_factory)
+    # Add console handler with structured formatter
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(StructuredFormatter())
+    root_logger.addHandler(console_handler)
     
     # Auto-instrument logging
     LoggingInstrumentor().instrument(set_logging_format=True)
@@ -121,7 +189,7 @@ def setup_logging(service_name: str, environment: str):
 def setup_auto_instrumentation():
     """Setup automatic instrumentation for common libraries"""
     # Instrument FastAPI
-    FastAPIInstrumentor.instrument()
+    FastAPIInstrumentor().instrument()
     
     # Instrument HTTP clients
     HTTPXClientInstrumentor().instrument()
@@ -207,3 +275,16 @@ def trace_agent_call(from_agent: str, to_agent: str, transaction_id: str):
                 "error_type": type(e).__name__
             })
             raise
+
+
+def trace_agent_call_simple(agent, target, transaction_id):
+    """Simple agent call tracing for compatibility"""
+    tracer = get_tracer("agent-calls")
+    with tracer.start_as_current_span(f"agent_call_{agent.__class__.__name__}_to_{target}") as span:
+        span.set_attribute("agent", agent.__class__.__name__)
+        span.set_attribute("target", target)
+        span.set_attribute("transaction_id", transaction_id)
+        
+        # Log the call
+        logger = logging.getLogger(agent.__class__.__name__)
+        logger.info(f"Agent call: {agent.__class__.__name__} -> {target} (txn: {transaction_id})")

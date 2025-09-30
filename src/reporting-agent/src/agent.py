@@ -1,9 +1,12 @@
 """
 Reporting Agent - Specialized agent for generating business reports
 Uses MCP tools for analytics and data processing
+Enhanced with auto-registration capabilities
 """
 
 import uuid
+import os
+import time
 from datetime import datetime
 from typing import Any, Dict, Optional
 import logging
@@ -14,10 +17,11 @@ from google.adk.tools import MCPToolset
 from adk_shared.observability import get_tracer
 from adk_shared.security import get_auth_token
 from adk_shared.litellm_integration import create_agent_llm_config, get_litellm_wrapper
+from adk_shared.agent_registry import SelfRegisteringAgent, AgentCapability
 import yaml
 
 
-class ReportingAgent(LlmAgent):
+class ReportingAgent(SelfRegisteringAgent, LlmAgent):
     """Specialized agent for report generation and analytics"""
     
     def __init__(self, config_path: str = "config/root_agent.yaml"):
@@ -35,44 +39,74 @@ class ReportingAgent(LlmAgent):
         # Create LiteLLM-compatible configuration
         llm_config = create_agent_llm_config('reporting')
         
-        super().__init__(
+        # Initialize LlmAgent first
+        LlmAgent.__init__(
+            self,
             name="ReportingAgent",
             description="Specialized agent for business reporting and analytics",
             tools=[mcp_toolset],
             llm_config=llm_config
         )
         
+        # Initialize SelfRegisteringAgent with auto-registration
+        SelfRegisteringAgent.__init__(
+            self,
+            registry_url=config.get('registry_url'),
+            auto_register=config.get('auto_register', True),
+            heartbeat_interval=config.get('heartbeat_interval', 30)
+        )
+        
+        # Define agent-specific capabilities
+        self.agent_capabilities = [
+            AgentCapability(
+                name="reporting",
+                description="Generate reports and analytics from enterprise data",
+                input_schema={
+                    "type": "object",
+                    "properties": {
+                        "report_type": {"type": "string", "description": "Type of report to generate"},
+                        "data_source": {"type": "string", "description": "Data source for the report"},
+                        "parameters": {"type": "object", "description": "Report parameters"}
+                    },
+                    "required": ["report_type"]
+                },
+                output_schema={
+                    "type": "object", 
+                    "properties": {
+                        "report": {"type": "object", "description": "Generated report"},
+                        "metadata": {"type": "object", "description": "Report metadata"}
+                    }
+                },
+                complexity_score=2.5,  # High complexity
+                estimated_duration=10.0  # 10 seconds average
+            ),
+            AgentCapability(
+                name="analytics",
+                description="Perform data analytics and insights generation",
+                input_schema={
+                    "type": "object",
+                    "properties": {
+                        "analysis_type": {"type": "string"},
+                        "data_scope": {"type": "string"}
+                    }
+                },
+                output_schema={"type": "object"},
+                complexity_score=3.0,  # Very high complexity
+                estimated_duration=15.0
+            )
+        ]
+        
+        # Set additional attributes for auto-registration
+        self.version = "2.0.0"
+        self.max_concurrent_requests = config.get('max_concurrent_requests', 8)
+        self.tags = set(config.get('tags', ['reporting', 'analytics', 'business']))
+        self.priority = config.get('priority', 3)  # High priority for reporting agent
+        
         # Initialize LiteLLM wrapper for enhanced functionality
         self.litellm_wrapper = get_litellm_wrapper('reporting')
         self.tracer = get_tracer("reporting-agent")
     
     async def process_request(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Process reporting requests with full observability"""
-        transaction_id = str(uuid.uuid4())
-        
-        with self.tracer.start_as_current_span("reporting_request") as span:
-            span.set_attribute("transaction_id", transaction_id)
-            span.set_attribute("query", query)
-            
-            try:
-                # Use LiteLLM wrapper for enhanced functionality
-                messages = [
-                    {"role": "user", "content": f"Generate a comprehensive report based on: {query}. Use analytics tools and data sources as needed. Context: {context or {}}"}
-                ]
-                
-                response = await self.litellm_wrapper.chat_completion(messages)
-                
-                return {
-                    "transaction_id": transaction_id,
-                    "agent": "ReportingAgent",
-                    "query": query,
-                    "response": response.get('content', ''),
-                    "model": response.get('model', 'unknown'),
-                    "usage": response.get('usage', {}),
-                    "timestamp": datetime.now().isoformat()
-                }
-                
-            except Exception as e:
-                span.record_exception(e)
-                logging.error(f"Reporting failed: {transaction_id} - {str(e)}")
-                raise
+        """Process reporting requests with enhanced telemetry and auto-registration"""
+        # Use the enhanced telemetry from SelfRegisteringAgent
+        return await self.process_request_with_telemetry(query, context)

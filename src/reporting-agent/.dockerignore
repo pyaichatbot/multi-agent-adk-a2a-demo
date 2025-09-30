@@ -1,0 +1,455 @@
+# Reporting Agent specific dockerignore
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+docs/
+documentation/
+
+# Development files
+.env
+.env.*
+*.env
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+nosetests.xml
+
+# Logs
+logs/
+*.log
+**/logs/
+**/*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Configuration files with secrets
+**/config/secrets.yaml
+**/config/production.yaml
+**/config/*.env
+**/config/*.key
+**/config/*.pem
+**/config/*.crt
+**/config/*.secret
+
+# Reporting Agent specific
+# Report cache
+report-cache/
+reporting-cache/
+report-temp/
+
+# Report data
+report-data/
+reporting-data/
+report-temp/
+
+# Report templates
+report-templates/
+reporting-templates/
+templates-temp/
+
+# Report outputs
+report-outputs/
+reporting-outputs/
+outputs-temp/
+
+# Report logs
+report-logs/
+reporting-logs/
+report-logs-temp/
+
+# Report metrics
+report-metrics/
+reporting-metrics/
+metrics-temp/
+
+# Report traces
+report-traces/
+reporting-traces/
+traces-temp/
+
+# Report audit
+report-audit/
+reporting-audit/
+audit-temp/
+
+# Report compliance
+report-compliance/
+reporting-compliance/
+compliance-temp/
+
+# Report governance
+report-governance/
+reporting-governance/
+governance-temp/
+
+# Report security
+report-security/
+reporting-security/
+security-temp/
+
+# Report monitoring
+report-monitoring/
+reporting-monitoring/
+monitoring-temp/
+
+# Report observability
+report-observability/
+reporting-observability/
+observability-temp/
+
+# Report performance
+report-performance/
+reporting-performance/
+performance-temp/
+
+# Report load testing
+report-load-testing/
+reporting-load-testing/
+load-testing-temp/
+
+# Report stress testing
+report-stress-testing/
+reporting-stress-testing/
+stress-testing-temp/
+
+# Report integration testing
+report-integration-testing/
+reporting-integration-testing/
+integration-testing-temp/
+
+# Report unit testing
+report-unit-testing/
+reporting-unit-testing/
+unit-testing-temp/
+
+# Report end-to-end testing
+report-e2e-testing/
+reporting-e2e-testing/
+e2e-testing-temp/
+
+# Report smoke testing
+report-smoke-testing/
+reporting-smoke-testing/
+smoke-testing-temp/
+
+# Report regression testing
+report-regression-testing/
+reporting-regression-testing/
+regression-testing-temp/
+
+# Report acceptance testing
+report-acceptance-testing/
+reporting-acceptance-testing/
+acceptance-testing-temp/
+
+# Report performance testing
+report-performance-testing/
+reporting-performance-testing/
+performance-testing-temp/
+
+# Analytics data
+analytics-data/
+analytics-temp/
+analytics-cache/
+
+# Business insights data
+business-insights-data/
+insights-data/
+business-insights-temp/
+
+# Data visualization data
+data-visualization-data/
+visualization-data/
+data-visualization-temp/
+
+# Chart data
+chart-data/
+charts-data/
+chart-temp/
+
+# Graph data
+graph-data/
+graphs-data/
+graph-temp/
+
+# Dashboard data
+dashboard-data/
+dashboards-data/
+dashboard-temp/
+
+# KPI data
+kpi-data/
+kpis-data/
+kpi-temp/
+
+# Metrics data
+metrics-data/
+metrics-temp/
+metrics-cache/
+
+# Trends data
+trends-data/
+trend-data/
+trends-temp/
+
+# Patterns data
+patterns-data/
+pattern-data/
+patterns-temp/
+
+# Anomalies data
+anomalies-data/
+anomaly-data/
+anomalies-temp/
+
+# Outliers data
+outliers-data/
+outlier-data/
+outliers-temp/
+
+# Correlations data
+correlations-data/
+correlation-data/
+correlations-temp/
+
+# Relationships data
+relationships-data/
+relationship-data/
+relationships-temp/
+
+# Dependencies data
+dependencies-data/
+dependency-data/
+dependencies-temp/
+
+# Hierarchies data
+hierarchies-data/
+hierarchy-data/
+hierarchies-temp/
+
+# Classifications data
+classifications-data/
+classification-data/
+classifications-temp/
+
+# Categorizations data
+categorizations-data/
+categorization-data/
+categorizations-temp/
+
+# Groupings data
+groupings-data/
+grouping-data/
+groupings-temp/
+
+# Segmentations data
+segmentations-data/
+segmentation-data/
+segmentations-temp/
+
+# Clustering data
+clustering-data/
+cluster-data/
+clustering-temp/
+
+# Classification data
+classification-data/
+classification-temp/
+classification-cache/
+
+# Categorization data
+categorization-data/
+categorization-temp/
+categorization-cache/
+
+# Grouping data
+grouping-data/
+grouping-temp/
+grouping-cache/
+
+# Segmentation data
+segmentation-data/
+segmentation-temp/
+segmentation-cache/
+
+# Clustering data
+clustering-data/
+clustering-temp/
+clustering-cache/
+
+# Business data
+business-data/
+business-temp/
+business-cache/
+
+# Enterprise data
+enterprise-data/
+enterprise-temp/
+enterprise-cache/
+
+# Compliance data
+compliance-data/
+compliance-temp/
+compliance-cache/
+
+# Governance data
+governance-data/
+governance-temp/
+governance-cache/
+
+# Audit data
+audit-data/
+audit-temp/
+audit-cache/
+
+# Security data
+security-data/
+security-temp/
+security-cache/
+
+# Monitoring data
+monitoring-data/
+monitoring-temp/
+monitoring-cache/
+
+# Observability data
+observability-data/
+observability-temp/
+observability-cache/
+
+# Performance data
+performance-data/
+performance-temp/
+performance-cache/
+
+# Load testing data
+load-testing-data/
+load-testing-temp/
+load-testing-cache/
+
+# Stress testing data
+stress-testing-data/
+stress-testing-temp/
+stress-testing-cache/
+
+# Integration testing data
+integration-testing-data/
+integration-testing-temp/
+integration-testing-cache/
+
+# Unit testing data
+unit-testing-data/
+unit-testing-temp/
+unit-testing-cache/
+
+# End-to-end testing data
+e2e-testing-data/
+e2e-testing-temp/
+e2e-testing-cache/
+
+# Smoke testing data
+smoke-testing-data/
+smoke-testing-temp/
+smoke-testing-cache/
+
+# Regression testing data
+regression-testing-data/
+regression-testing-temp/
+regression-testing-cache/
+
+# Acceptance testing data
+acceptance-testing-data/
+acceptance-testing-temp/
+acceptance-testing-cache/
+
+# Performance testing data
+performance-testing-data/
+performance-testing-temp/
+performance-testing-cache/

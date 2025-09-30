@@ -1,0 +1,410 @@
+# Data Search Agent specific dockerignore
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+docs/
+documentation/
+
+# Development files
+.env
+.env.*
+*.env
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+nosetests.xml
+
+# Logs
+logs/
+*.log
+**/logs/
+**/*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Configuration files with secrets
+**/config/secrets.yaml
+**/config/production.yaml
+**/config/*.env
+**/config/*.key
+**/config/*.pem
+**/config/*.crt
+**/config/*.secret
+
+# Data Search Agent specific
+# Search cache
+search-cache/
+data-search-cache/
+search-temp/
+
+# Search data
+search-data/
+data-search-data/
+search-temp/
+
+# Search results
+search-results/
+data-search-results/
+results-temp/
+
+# Search indexes
+search-indexes/
+data-search-indexes/
+indexes-temp/
+
+# Search queries
+search-queries/
+data-search-queries/
+queries-temp/
+
+# Search responses
+search-responses/
+data-search-responses/
+responses-temp/
+
+# Search logs
+search-logs/
+data-search-logs/
+search-logs-temp/
+
+# Search metrics
+search-metrics/
+data-search-metrics/
+metrics-temp/
+
+# Search traces
+search-traces/
+data-search-traces/
+traces-temp/
+
+# Search audit
+search-audit/
+data-search-audit/
+audit-temp/
+
+# Search compliance
+search-compliance/
+data-search-compliance/
+compliance-temp/
+
+# Search governance
+search-governance/
+data-search-governance/
+governance-temp/
+
+# Search security
+search-security/
+data-search-security/
+security-temp/
+
+# Search monitoring
+search-monitoring/
+data-search-monitoring/
+monitoring-temp/
+
+# Search observability
+search-observability/
+data-search-observability/
+observability-temp/
+
+# Search performance
+search-performance/
+data-search-performance/
+performance-temp/
+
+# Search load testing
+search-load-testing/
+data-search-load-testing/
+load-testing-temp/
+
+# Search stress testing
+search-stress-testing/
+data-search-stress-testing/
+stress-testing-temp/
+
+# Search integration testing
+search-integration-testing/
+data-search-integration-testing/
+integration-testing-temp/
+
+# Search unit testing
+search-unit-testing/
+data-search-unit-testing/
+unit-testing-temp/
+
+# Search end-to-end testing
+search-e2e-testing/
+data-search-e2e-testing/
+e2e-testing-temp/
+
+# Search smoke testing
+search-smoke-testing/
+data-search-smoke-testing/
+smoke-testing-temp/
+
+# Search regression testing
+search-regression-testing/
+data-search-regression-testing/
+regression-testing-temp/
+
+# Search acceptance testing
+search-acceptance-testing/
+data-search-acceptance-testing/
+acceptance-testing-temp/
+
+# Search performance testing
+search-performance-testing/
+data-search-performance-testing/
+performance-testing-temp/
+
+# Database search data
+database-search-data/
+db-search-data/
+database-search-temp/
+
+# Document search data
+document-search-data/
+doc-search-data/
+document-search-temp/
+
+# Data extraction data
+data-extraction-data/
+extraction-data/
+data-extraction-temp/
+
+# Data processing data
+data-processing-data/
+processing-data/
+data-processing-temp/
+
+# Data transformation data
+data-transformation-data/
+transformation-data/
+data-transformation-temp/
+
+# Data validation data
+data-validation-data/
+validation-data/
+data-validation-temp/
+
+# Data formatting data
+data-formatting-data/
+formatting-data/
+data-formatting-temp/
+
+# Data presentation data
+data-presentation-data/
+presentation-data/
+data-presentation-temp/
+
+# Data visualization data
+data-visualization-data/
+visualization-data/
+data-visualization-temp/
+
+# Data analysis data
+data-analysis-data/
+analysis-data/
+data-analysis-temp/
+
+# Data insights data
+data-insights-data/
+insights-data/
+data-insights-temp/
+
+# Data reporting data
+data-reporting-data/
+reporting-data/
+data-reporting-temp/
+
+# Data dashboard data
+data-dashboard-data/
+dashboard-data/
+data-dashboard-temp/
+
+# Data metrics data
+data-metrics-data/
+metrics-data/
+data-metrics-temp/
+
+# Data KPIs data
+data-kpis-data/
+kpis-data/
+data-kpis-temp/
+
+# Data trends data
+data-trends-data/
+trends-data/
+data-trends-temp/
+
+# Data patterns data
+data-patterns-data/
+patterns-data/
+data-patterns-temp/
+
+# Data anomalies data
+data-anomalies-data/
+anomalies-data/
+data-anomalies-temp/
+
+# Data outliers data
+data-outliers-data/
+outliers-data/
+data-outliers-temp/
+
+# Data correlations data
+data-correlations-data/
+correlations-data/
+data-correlations-temp/
+
+# Data relationships data
+data-relationships-data/
+relationships-data/
+data-relationships-temp/
+
+# Data dependencies data
+data-dependencies-data/
+dependencies-data/
+data-dependencies-temp/
+
+# Data hierarchies data
+data-hierarchies-data/
+hierarchies-data/
+data-hierarchies-temp/
+
+# Data classifications data
+data-classifications-data/
+classifications-data/
+data-classifications-temp/
+
+# Data categorizations data
+data-categorizations-data/
+categorizations-data/
+data-categorizations-temp/
+
+# Data groupings data
+data-groupings-data/
+groupings-data/
+data-groupings-temp/
+
+# Data segmentations data
+data-segmentations-data/
+segmentations-data/
+data-segmentations-temp/
+
+# Data clustering data
+data-clustering-data/
+clustering-data/
+data-clustering-temp/
+
+# Data classification data
+data-classification-data/
+classification-data/
+data-classification-temp/
+
+# Data categorization data
+data-categorization-data/
+categorization-data/
+data-categorization-temp/
+
+# Data grouping data
+data-grouping-data/
+grouping-data/
+data-grouping-temp/
+
+# Data segmentation data
+data-segmentation-data/
+segmentation-data/
+data-segmentation-temp/
+
+# Data clustering data
+data-clustering-data/
+clustering-data/
+data-clustering-temp/
